@@ -187,6 +187,40 @@ body.ingame #cloud{display:block}
 .cloudbox input{flex:1;min-width:0;background:rgba(0,0,0,.4);border:1px solid #4a473d;color:#f4f1e6;font:700 16px "Barlow Condensed";letter-spacing:.1em;padding:6px 8px;text-transform:uppercase;pointer-events:auto}
 .cloudbox .cl-msg{font-size:12px;min-height:15px;margin-top:4px;color:#e59a5a}
 .cloudbox .cl-msg.ok{color:#9fd08a}
+/* v8: universal close button for every modal panel (48px+ tap target, respects notch / safe areas) */
+.px{position:fixed;top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));width:52px;height:52px;z-index:5;border-radius:50%;background:rgba(18,18,18,.9);border:2px solid #e9c64a;color:#f2d45c;font:800 24px/1 "Barlow",sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.5);touch-action:manipulation}
+.px:hover,.px:focus-visible{background:#e9c64a;color:#111;outline:none}
+body.modal #hud,body.modal #touch{visibility:hidden}
+#hud{z-index:21}  /* above the touch look/joystick zones so hotbar slots (tools, B build, Q drop) are tappable */
+body.touch #tb-menu{left:max(8px,env(safe-area-inset-left));top:max(8px,env(safe-area-inset-top));width:48px;height:48px}
+body.touch #mission{left:64px;width:min(300px,calc(100vw - 64px - 150px))}
+body.touch #mission .kb{position:static;width:fit-content;margin-top:5px}
+body.touch .slot{width:min(46px,10.5vw);height:min(46px,10.5vw)}
+#tree{background:rgba(6,6,8,.97)}
+#tree .hd{flex-wrap:wrap;padding-right:max(76px,calc(env(safe-area-inset-right) + 70px))}
+.cat .top{padding-right:70px;padding-left:70px}
+body.touch #tree .hd .x,body.touch .cat .top .x{display:none}
+#tree .cards,#tree .cats,.cat .grid,.cat .tabs,#shop .box,#pause .box,#gate,#rakep .box,#cabp .box{touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}
+@media (max-width:760px){
+  #tree .hd{gap:8px}#tree .hd h1{font-size:22px;line-height:1}#tree .hd .m{font-size:20px;margin-left:0}
+  #tree .hd input{order:3;width:100%;flex-basis:100%}
+  #tree .bd{flex-direction:column}
+  #tree .cats{width:auto;flex:none;display:flex;overflow-x:auto;overflow-y:hidden;border-right:none;border-bottom:1px solid #222;padding:2px 4px}
+  #tree .cats div{white-space:nowrap;padding:10px 10px;gap:6px}
+  #tree .cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));padding:8px;gap:8px}
+  .cat .box{max-height:84vh;margin-top:40px}
+  .cat .in{flex-direction:column}
+  .cat .tabs{width:auto;display:flex;overflow-x:auto;overflow-y:hidden;padding:2px 4px;flex:none}
+  .cat .tabs div{white-space:nowrap;padding:10px}
+  .cat .grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+  #shop .box,#pause .box{margin-top:56px;max-height:calc(100% - 70px)}
+}
+@media (max-width:760px) and (orientation:portrait){
+  #money{font-size:30px}
+  #contract{top:max(64px,calc(env(safe-area-inset-top) + 60px));width:130px}
+  #tb-tab{top:auto;right:14px;bottom:max(262px,calc(env(safe-area-inset-bottom) + 256px))}
+  #prompts{display:none}
+}
 #pause{z-index:55;align-items:center;justify-content:center}
 #pause .box{width:min(440px,94vw);max-height:92vh;overflow-y:auto;background:rgba(16,15,13,.97);border:1px solid #6b5a2a;padding:16px 18px}
 #pause h2{font:800 30px "Barlow Condensed";color:#f2d45c;margin-bottom:8px}
@@ -453,6 +487,9 @@ I18N.en = {
   pause_recover: "Recover my tools",
   tip_recovered: "{n} tool(s) brought next to you.",
   tip_recover_none: "All your tools are already with you.",
+  tree_footer_touch: "{a} of {b} levels bought  ·  tap a card to buy  ·  ✕ to close",
+  cat_hint_touch: "👆 Tap to equip  ·  🔒 Locked: tap to show the tree  ·  ✕ to close",
+  shop_sub_touch: "Tools. Cards for them are in the tech tree (TAB TREE button).",
 };
 
 I18N.es = {
@@ -587,6 +624,9 @@ I18N.es = {
   pause_recover: "Recuperar mis herramientas",
   tip_recovered: "{n} herramienta(s) traída(s) a tu lado.",
   tip_recover_none: "Ya tienes todas tus herramientas.",
+  tree_footer_touch: "{a} de {b} niveles comprados  ·  toca una carta para comprar  ·  ✕ para cerrar",
+  cat_hint_touch: "👆 Toca para equipar  ·  🔒 Bloqueado: toca para ver el árbol  ·  ✕ para cerrar",
+  shop_sub_touch: "Herramientas. Sus cartas están en el árbol tecnológico (botón TAB ÁRBOL).",
 };
 
 I18N.pt = {
@@ -721,6 +761,9 @@ I18N.pt = {
   pause_recover: "Recuperar minhas ferramentas",
   tip_recovered: "{n} ferramenta(s) trazida(s) para perto de você.",
   tip_recover_none: "Todas as suas ferramentas já estão com você.",
+  tree_footer_touch: "{a} de {b} níveis comprados  ·  toque numa carta para comprar  ·  ✕ para fechar",
+  cat_hint_touch: "👆 Toque para equipar  ·  🔒 Bloqueado: toque para ver a árvore  ·  ✕ para fechar",
+  shop_sub_touch: "Ferramentas. As cartas delas estão na árvore tecnológica (botão TAB ÁRVORE).",
 };
 
 I18N.fr = {
@@ -855,6 +898,9 @@ I18N.fr = {
   pause_recover: "Récupérer mes outils",
   tip_recovered: "{n} outil(s) ramené(s) près de toi.",
   tip_recover_none: "Tu as déjà tous tes outils.",
+  tree_footer_touch: "{a} niveaux achetés sur {b}  ·  touche une carte pour acheter  ·  ✕ pour fermer",
+  cat_hint_touch: "👆 Touche pour équiper  ·  🔒 Verrouillé : touche pour voir l'arbre  ·  ✕ pour fermer",
+  shop_sub_touch: "Outils. Leurs cartes sont dans l'arbre technologique (bouton TAB ARBRE).",
 };
 
 I18N.de = {
@@ -989,6 +1035,9 @@ I18N.de = {
   pause_recover: "Meine Werkzeuge holen",
   tip_recovered: "{n} Werkzeug(e) zu dir gebracht.",
   tip_recover_none: "Du hast schon alle Werkzeuge bei dir.",
+  tree_footer_touch: "{a} von {b} Stufen gekauft  ·  Karte antippen zum Kaufen  ·  ✕ zum Schließen",
+  cat_hint_touch: "👆 Antippen zum Ausrüsten  ·  🔒 Gesperrt: antippen, um den Baum zu zeigen  ·  ✕ zum Schließen",
+  shop_sub_touch: "Werkzeuge. Die Karten dafür sind im Technologiebaum (Knopf TAB BAUM).",
 };
 
 I18N.it = {
@@ -1123,14 +1172,25 @@ I18N.it = {
   pause_recover: "Recupera i miei attrezzi",
   tip_recovered: "{n} attrezzo/i portato/i accanto a te.",
   tip_recover_none: "Hai già tutti i tuoi attrezzi.",
+  tree_footer_touch: "{a} di {b} livelli comprati  ·  tocca una carta per comprare  ·  ✕ per chiudere",
+  cat_hint_touch: "👆 Tocca per equipaggiare  ·  🔒 Bloccato: tocca per vedere l'albero  ·  ✕ per chiudere",
+  shop_sub_touch: "Attrezzi. Le loro carte sono nell'albero tecnologico (pulsante TAB ALBERO).",
 };
 
 
 const LANGS = ['en', 'es', 'pt', 'fr', 'de', 'it'];
 const LOCALES = { en: 'en-US', es: 'es-ES', pt: 'pt-BR', fr: 'fr-FR', de: 'de-DE', it: 'it-IT' };
 let LANG = (() => { try { const l = localStorage.getItem('ftn-lang'); return LANGS.includes(l) ? l : 'en'; } catch (_) { return 'en'; } })();
+const TOUCH_UI = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+// on touch devices: prefer "<key>_touch" strings and turn key names in <b>…</b> into the on-screen button labels
+const TOUCH_KEYS = { Tab: 't_tree', E: 't_use', F: 't_throw', R: 't_turn', X: 't_x', Shift: 't_run', LMB: 't_lmb', RMB: 't_rmb', B: 'slot_build', Q: 'slot_drop' };
+const rawT = k => String((I18N[LANG] && I18N[LANG][k]) ?? I18N.en[k] ?? k).replace(/<br>/g, ' ');
+const touchLabel = k => (k === 'B' || k === 'Q' ? k + ' · ' : '') + rawT(TOUCH_KEYS[k]);
+function touchify(s) { return s.replace(/<b>(Tab|E|F|R|X|Shift|LMB|RMB|B|Q)<\/b>/g, (m, k) => '<b>' + touchLabel(k) + '</b>').replace(/\bShift\b/g, () => touchLabel('Shift')); }
 function t(key, vars) {
+  if (TOUCH_UI && I18N.en[key + '_touch'] !== undefined) key += '_touch';
   let s = (I18N[LANG] && I18N[LANG][key]) ?? I18N.en[key];
+  if (TOUCH_UI && typeof s === 'string' && !/^t_|^slot_/.test(key)) s = touchify(s);
   if (s === undefined) { console.warn('i18n missing', key); return key; }
   if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => vars[k] !== undefined ? vars[k] : m);
   return s;
@@ -1918,8 +1978,16 @@ const ray = new THREE.Raycaster();
 const fwd = () => new THREE.Vector3(-Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), -Math.cos(P.yaw) * Math.cos(P.pitch));
 const fwdXZ = () => new THREE.Vector3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw));
 const anyPanel = () => ['tree', 'cat', 'shop', 'rakep', 'cabp', 'found', 'gate', 'pause', 'loading'].some(id => $(id).classList.contains('open'));
-function openPanel(id) { $(id).classList.add('open'); if (document.pointerLockElement) document.exitPointerLock(); lmbHeld = false; }
-function closePanel(id) { $(id).classList.remove('open'); }
+const CLOSABLE = ['pause', 'found', 'cabp', 'rakep', 'shop', 'cat', 'tree'];   // top-most first
+const openClosable = () => CLOSABLE.filter(id => $(id).classList.contains('open'));
+let skipPop = false;
+function syncModal() {
+  const any = openClosable().length > 0; document.body.classList.toggle('modal', any);
+  if (any) { if (!(history.state && history.state.ftnPanel)) history.pushState({ ftnPanel: 1 }, ''); }
+  else setTimeout(() => { if (!openClosable().length && history.state && history.state.ftnPanel) { skipPop = true; history.back(); } }, 0);
+}
+function openPanel(id) { $(id).classList.add('open'); if (document.pointerLockElement) document.exitPointerLock(); lmbHeld = false; if (CLOSABLE.includes(id)) syncModal(); }
+function closePanel(id) { const was = $(id).classList.contains('open'); $(id).classList.remove('open'); if (was && CLOSABLE.includes(id)) syncModal(); }
 
 // what the crosshair points at
 let aim = { kind: null };
@@ -2433,7 +2501,7 @@ function updateMission() {
   const complete = st.done ? st.done() : st.goal ? st.val() >= st.goal : st.n ? st.val() >= st.n : false;
   if (complete && S.step < STEPS.length - 1) { S.step++; beep(760, 0.08, 0.05, 'triangle'); setTimeout(() => beep(1140, 0.1, 0.05, 'triangle'), 90); save(); st = STEPS[S.step]; }
   $('m-st').textContent = t('step', { n: S.step + 1, m: STEPS.length });
-  $('m-ti').textContent = t('s' + (S.step + 1) + '_t'); const kb = st.k ? (st.k.startsWith('key_') ? t(st.k) : st.k) : ''; $('m-kb').textContent = kb; $('m-kb').style.display = kb ? 'block' : 'none';
+  $('m-ti').textContent = t('s' + (S.step + 1) + '_t'); const kb = st.k ? (TOUCH_UI && TOUCH_KEYS[st.k] ? touchLabel(st.k) : TOUCH_UI && st.k === 'key_wheel' ? 'C − / V +' : st.k.startsWith('key_') ? t(st.k) : st.k) : ''; $('m-kb').textContent = kb; $('m-kb').style.display = kb ? 'block' : 'none';
   const body = t('s' + (S.step + 1) + '_b'); if (lastStepHTML !== body) { $('m-bd').innerHTML = body; lastStepHTML = body; }
   const bar = $('m-bar'), pr = $('m-pr');
   if (st.goal) { const v = st.val(); bar.style.display = pr.style.display = 'block'; bar.firstChild.style.width = Math.min(100, v / st.goal * 100) + '%'; pr.textContent = `${fmt$(v)} / ${fmt$(st.goal)}  ·  ${fmt$(Math.max(0, st.goal - v))}`; }
@@ -2599,12 +2667,12 @@ document.addEventListener('mousemove', e => { if (document.pointerLockElement !=
 {
   const jz = $('joyz'), jb = $('joyb'), jk = $('joyk'); let jid = null;
   const setK = (dx, dy) => { const l = Math.hypot(dx, dy) || 1, cl = Math.min(l, 44), x = dx / l * cl, y = dy / l * cl; jk.style.transform = `translate(${x}px,${y}px)`; mv.x = x / 44; mv.y = -y / 44; };
-  jz.addEventListener('pointerdown', e => { e.preventDefault(); jid = e.pointerId; jz.setPointerCapture(jid); const r = jb.getBoundingClientRect(); setK(e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2); });
+  jz.addEventListener('pointerdown', e => { e.preventDefault(); jid = e.pointerId; try { jz.setPointerCapture(jid); } catch (_) {} const r = jb.getBoundingClientRect(); setK(e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2); });
   jz.addEventListener('pointermove', e => { if (e.pointerId !== jid) return; const r = jb.getBoundingClientRect(); setK(e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2); });
   const endJ = e => { if (e.pointerId !== jid) return; jid = null; jk.style.transform = ''; mv.x = mv.y = 0; };
   jz.addEventListener('pointerup', endJ); jz.addEventListener('pointercancel', endJ);
   const lz = $('lookz'); const looks = new Map();
-  lz.addEventListener('pointerdown', e => { looks.set(e.pointerId, [e.clientX, e.clientY]); lz.setPointerCapture(e.pointerId); });
+  lz.addEventListener('pointerdown', e => { looks.set(e.pointerId, [e.clientX, e.clientY]); try { lz.setPointerCapture(e.pointerId); } catch (_) {} });
   lz.addEventListener('pointermove', e => { const l = looks.get(e.pointerId); if (!l) return; P.yaw -= (e.clientX - l[0]) * 0.005 * SENS; P.pitch = Math.max(-1.45, Math.min(1.45, P.pitch - (e.clientY - l[1]) * 0.005 * SENS)); looks.set(e.pointerId, [e.clientX, e.clientY]); });
   const endL = e => looks.delete(e.pointerId); lz.addEventListener('pointerup', endL); lz.addEventListener('pointercancel', endL);
   const btn = (id, down, up) => { const b = $(id); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); b.classList.add('held'); down(); }); const u = e => { b.classList.remove('held'); up && up(); }; b.addEventListener('pointerup', u); b.addEventListener('pointercancel', u); b.addEventListener('pointerleave', u); };
@@ -2682,6 +2750,22 @@ document.addEventListener('pointerlockchange', () => {
   if (started && !anyPanel() && !IS_TOUCH) openPause();
 });
 $('pause-resume').onclick = () => closePause();
+// v8: every modal gets a big ✕, tapping the dark backdrop closes it, the phone/browser back button closes the top one
+function closeId(id) {
+  if (!$(id).classList.contains('open')) return;
+  if (id === 'pause') { closePause(); return; }
+  if (id === 'rakep') $('rake-x').onclick(); else closePanel(id);
+  if (!IS_TOUCH && started && !anyPanel()) canvas.requestPointerLock?.();
+}
+function closeTop() { const id = openClosable()[0]; if (id) closeId(id); return !!id; }
+for (const id of CLOSABLE) {
+  const p = $(id), x = document.createElement('button'); x.className = 'px'; x.id = id + '-close'; x.type = 'button'; x.textContent = '✕';
+  x.addEventListener('click', e => { e.stopPropagation(); closeId(id); }); p.appendChild(x);
+  // backdrop: only when the touch/click STARTED on the backdrop (the tap that opened the panel must not close it)
+  if (id !== 'tree') { let downBg = false; p.addEventListener('pointerdown', e => { downBg = e.target === p; }); p.addEventListener('click', e => { if (e.target === p && downBg) closeId(id); downBg = false; }); }
+}
+onLang(() => { for (const id of CLOSABLE) { const x = $(id + '-close'); x.title = t('close'); x.setAttribute('aria-label', t('close')); } });
+addEventListener('popstate', () => { if (skipPop) { skipPop = false; return; } if (closeTop() && openClosable().length) history.pushState({ ftnPanel: 1 }, ''); });
 $('pause-recover').onclick = () => { recoverTools(); closePause(); };
 $('pause-sens').addEventListener('input', e => { SENS = +e.target.value; try { localStorage.setItem('ftn-sens', SENS); } catch (_) {} });
 let QUALITY = localStorage.getItem('ftn-q') || (IS_TOUCH ? 'low' : 'high');
@@ -2806,7 +2890,7 @@ if (sessionStorage.getItem('ftn-autostart')) {
   sessionStorage.removeItem('ftn-autostart'); closePanel('gate'); openPanel('loading');
   let pr = 0; const iv = setInterval(() => { pr += 0.12 + Math.random() * 0.1; $('load-bar').style.width = Math.min(100, pr * 100) + '%'; if (pr >= 1) { clearInterval(iv); closePanel('loading'); startGame(); } }, 120);
 }
-window.__game = { setLang, applyLang, t, I18N, get LANG() { return LANG; }, openPause, renderTree, renderCat, renderShop, openCabinet, pinOrder, startGame, updateMission, HC, BAY, SHOP, updateAim, updateItems, updateGhost, updatePower, cancelBuild, S, items, segs, builds, P, aim: () => aim, onLMB, onRMB, onE, equipBuild, placeBuild, save, THREE, setTool, cloud: () => ({ acct: cloud, st: cloudSt, min: cloudMin, ready: cloudReady, sig: cloudSig }), cloudPush, recoverTools, syncGroundTools, dbg: () => ({ pileR: PILE_R * pileS, meshes: gtMeshes.size, flying: gtFly.size }), get started() { return started; } };
+window.__game = { setLang, applyLang, t, I18N, get LANG() { return LANG; }, openPause, renderTree, renderCat, renderShop, openCabinet, pinOrder, startGame, updateMission, HC, BAY, SHOP, updateAim, updateItems, updateGhost, updatePower, cancelBuild, S, items, segs, builds, P, aim: () => aim, onLMB, onRMB, onE, equipBuild, placeBuild, save, THREE, setTool, cloud: () => ({ acct: cloud, st: cloudSt, min: cloudMin, ready: cloudReady, sig: cloudSig }), cloudPush, openShop, openPanel, closeTop, recoverTools, syncGroundTools, dbg: () => ({ pileR: PILE_R * pileS, meshes: gtMeshes.size, flying: gtFly.size }), get started() { return started; } };
 tick();
 </script>
 </body>
