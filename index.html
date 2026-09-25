@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>Find The Needle Demo V23 — Web Prototype</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='24' font-size='24'%3E%F0%9F%8D%BE%3C/text%3E%3C/svg%3E" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: #87b8e8; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  #c { display: block; width: 100%; height: 100%; position: fixed; inset: 0; }
+  #hud {
+    position: fixed; inset: 0; pointer-events: none; z-index: 10;
+    color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.65);
+  }
+  #demo-title {
+    position: absolute; top: max(6px, env(safe-area-inset-top)); left: 50%;
+    transform: translateX(-50%); text-align: center; line-height: 1.25;
+  }
+  #demo-title .t { font-size: 12px; font-weight: 600; opacity: .85; letter-spacing: .02em; }
+  #demo-title .sub { font-size: 10px; opacity: .45; margin-top: 2px; }
+  #mission {
+    position: absolute; top: max(36px, calc(env(safe-area-inset-top) + 28px)); left: 10px;
+    background: rgba(0,0,0,.72); border-radius: 4px; padding: 10px 12px;
+    max-width: min(280px, 52vw); border: 1px solid rgba(255,255,255,.06);
+  }
+  #mission .step {
+    color: #f0d060; font-size: 11px; font-weight: 800; margin-bottom: 4px;
+    letter-spacing: .04em; text-transform: uppercase;
+  }
+  #mission .txt { font-size: 15px; line-height: 1.25; font-weight: 700; }
+  #mission .hint { font-size: 12px; opacity: .78; margin-top: 6px; line-height: 1.35; font-weight: 500; }
+  #mission .prog {
+    margin-top: 8px; font-size: 12px; color: #f0d060; font-weight: 700;
+  }
+  #mission .bar {
+    margin-top: 5px; height: 4px; background: rgba(255,255,255,.12); border-radius: 2px; overflow: hidden;
+  }
+  #mission .bar > i {
+    display: block; height: 100%; width: 0%; background: #f0d060; border-radius: 2px;
+  }
+  #money {
+    position: absolute; top: max(8px, env(safe-area-inset-top)); right: 14px;
+    font-size: 36px; font-weight: 900; color: #2ee86a; letter-spacing: -0.02em;
+    text-shadow: 0 0 18px rgba(46,232,106,.4), 0 2px 6px rgba(0,0,0,.55);
+  }
+  #hay-left {
+    position: absolute; top: max(48px, calc(env(safe-area-inset-top) + 40px)); right: 14px;
+    font-size: 14px; font-weight: 700; color: #ffe89a; text-align: right;
+  }
+  #rate {
+    position: absolute; top: max(68px, calc(env(safe-area-inset-top) + 60px)); right: 14px;
+    font-size: 12px; font-weight: 600; color: rgba(255,255,255,.7); text-align: right;
+  }
+  #crosshair {
+    position: absolute; left: 50%; top: 50%; width: 6px; height: 6px;
+    margin: -3px 0 0 -3px; border-radius: 50%;
+    background: rgba(255,255,255,.92); box-shadow: 0 0 0 1px rgba(0,0,0,.35);
+  }
+  #prompt {
+    position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    opacity: 0; transition: opacity .12s; pointer-events: none;
+  }
+  #prompt.show { opacity: 1; }
+  #prompt .card {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,.94); color: #111;
+    padding: 8px 14px 8px 8px; border-radius: 8px;
+    box-shadow: 0 4px 22px rgba(0,0,0,.3);
+    border: 2px solid rgba(220,50,40,.9);
+  }
+  #prompt .key {
+    min-width: 42px; height: 42px; border-radius: 6px;
+    background: #1a1a1a; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; letter-spacing: .02em;
+  }
+  #prompt .key.mouse {
+    background: #fff; color: #111; border: 2px solid #222;
+    font-size: 20px;
+  }
+  #prompt .key.mouse .rb { color: #e03020; }
+  #prompt .pinfo { text-align: left; }
+  #prompt .ptop {
+    font-size: 10px; font-weight: 800; letter-spacing: .14em; opacity: .55;
+    text-transform: uppercase;
+  }
+  #prompt .plab { font-size: 15px; font-weight: 800; line-height: 1.15; }
+  #prompt .psub { font-size: 11px; opacity: .6; margin-top: 1px; }
+  #toast {
+    position: absolute; left: 50%; top: 22%; transform: translateX(-50%);
+    background: rgba(0,0,0,.82); border-radius: 8px; padding: 10px 16px;
+    font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none;
+    border: 1px solid rgba(255,200,100,.3);
+  }
+  #toast.show { opacity: 1; }
+  #coin-pop {
+    position: absolute; left: 50%; top: 36%; transform: translate(-50%,0);
+    color: #2ee86a; font-size: 32px; font-weight: 900; opacity: 0;
+    pointer-events: none; text-shadow: 0 0 14px rgba(46,232,106,.5);
+  }
+  #coin-pop.show { animation: coinUp .9s ease-out forwards; }
+  @keyframes coinUp {
+    0% { opacity: 1; transform: translate(-50%,0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%,-70px) scale(1.2); }
+  }
+  #hotbar {
+    position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  #hotbar .slots {
+    display: flex; gap: 6px; background: rgba(0,0,0,.55);
+    padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1);
+  }
+  #hotbar .slot {
+    width: 56px; height: 56px; border-radius: 6px;
+    background: rgba(20,22,28,.85); border: 2px solid rgba(255,255,255,.18);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; color: #ddd; font-size: 10px; font-weight: 700;
+  }
+  #hotbar .slot.active {
+    border-color: #3de0a0; box-shadow: 0 0 12px rgba(61,224,160,.45);
+  }
+  #hotbar .slot .n {
+    position: absolute; top: 2px; left: 5px; font-size: 10px; opacity: .7;
+  }
+  #hotbar .slot .ico { font-size: 22px; line-height: 1; margin-top: 4px; }
+  #hotbar .slot.active .ico { filter: drop-shadow(0 0 6px #3de0a0); }
+  #hotbar .slot .lab { font-size: 9px; letter-spacing: .04em; opacity: .75; margin-top: 2px; }
+  #hotbar .hints {
+    font-size: 11px; opacity: .55; white-space: nowrap;
+  }
+  #controls {
+    position: fixed; inset: 0; z-index: 20; pointer-events: none;
+  }
+  #joy-zone {
+    position: absolute; left: 0; bottom: 0; width: 46%; height: 42%;
+    pointer-events: auto;
+  }
+  #joy-base {
+    position: absolute; left: 24px; bottom: max(88px, calc(env(safe-area-inset-bottom) + 70px));
+    width: 108px; height: 108px; border-radius: 50%;
+    background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.22);
+    touch-action: none;
+  }
+  #joy-knob {
+    position: absolute; left: 50%; top: 50%; width: 46px; height: 46px;
+    margin: -23px 0 0 -23px; border-radius: 50%;
+    background: rgba(255,255,255,.42); border: 2px solid rgba(255,255,255,.55);
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  #look-zone {
+    position: absolute; right: 0; top: 0; width: 54%; height: 100%;
+    pointer-events: auto;
+  }
+  #btn-interact {
+    position: absolute; right: 20px; bottom: max(88px, calc(env(safe-area-inset-bottom) + 70px));
+    width: 76px; height: 76px; border-radius: 50%;
+    background: rgba(245, 170, 35, .9); border: 3px solid rgba(255,230,150,.92);
+    color: #2a1600; font-weight: 800; font-size: 12px; line-height: 1.1;
+    pointer-events: auto; box-shadow: 0 4px 16px rgba(0,0,0,.35);
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    touch-action: none; cursor: pointer;
+  }
+  #btn-interact:active, #btn-interact.held {
+    background: rgba(255, 200, 55, 1); transform: scale(.94);
+  }
+  #btn-interact.dim { opacity: .42; }
+  #desktop-hint {
+    position: absolute; bottom: max(90px, calc(env(safe-area-inset-bottom) + 78px));
+    left: 50%; transform: translateX(-50%);
+    font-size: 10px; opacity: .4; white-space: nowrap; pointer-events: none;
+  }
+  #shop {
+    position: fixed; inset: 0; z-index: 40; display: none;
+    background: rgba(0,0,0,.7); align-items: center; justify-content: center;
+    pointer-events: auto;
+  }
+  #shop.open { display: flex; }
+  #shop-panel {
+    width: min(440px, 94vw); max-height: 78vh; overflow-y: auto;
+    background: rgba(12,14,18,.94); border-radius: 10px; padding: 18px 16px 16px;
+    border: 1px solid rgba(255,200,100,.28); color: #fff;
+  }
+  #shop-panel h2 { font-size: 18px; color: #f0d060; margin-bottom: 2px; }
+  #shop-panel .sub { font-size: 12px; opacity: .65; margin-bottom: 6px; }
+  #shop-panel .avail { font-size: 13px; margin-bottom: 14px; opacity: .85; }
+  .shop-item {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,.05); border-radius: 8px; padding: 12px;
+    margin-bottom: 8px; border: 1px solid rgba(255,255,255,.06);
+  }
+  .shop-item.hl { border-color: rgba(240,208,96,.55); }
+  .shop-item .ico { font-size: 28px; width: 40px; text-align: center; }
+  .shop-item .info { flex: 1; min-width: 0; }
+  .shop-item .name { font-weight: 700; font-size: 14px; }
+  .shop-item .desc { font-size: 11px; opacity: .7; margin-top: 2px; }
+  .shop-item .price { font-size: 12px; color: #8f8; margin-top: 2px; }
+  .shop-item button {
+    pointer-events: auto; background: #2ee86a; color: #0a2a12; border: none;
+    border-radius: 8px; padding: 8px 12px; font-weight: 800; font-size: 13px; cursor: pointer;
+    min-width: 72px;
+  }
+  .shop-item button:disabled { background: #444; color: #999; cursor: default; }
+  #shop-close {
+    width: 100%; margin-top: 8px; padding: 12px; border: none; border-radius: 10px;
+    background: rgba(255,255,255,.1); color: #fff; font-weight: 700; font-size: 14px;
+    cursor: pointer; pointer-events: auto;
+  }
+  #start-gate {
+    position: fixed; inset: 0; z-index: 50; background: rgba(20,35,55,.92);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; text-align: center; padding: 24px; gap: 10px;
+  }
+  #start-gate h1 { font-size: 26px; color: #f0d060; }
+  #start-gate p { font-size: 14px; opacity: .85; max-width: 380px; line-height: 1.4; }
+  #start-gate button {
+    margin-top: 12px; padding: 14px 28px; font-size: 16px; font-weight: 800;
+    background: #f0a820; color: #2a1600; border: none; border-radius: 12px; cursor: pointer;
+  }
+  #needle-fx {
+    position: fixed; inset: 0; z-index: 45; display: none;
+    background: rgba(8,10,14,.82); align-items: center; justify-content: center;
+    flex-direction: column; color: #fff; text-align: center; gap: 10px;
+  }
+  #needle-fx.open { display: flex; }
+  #needle-fx .big { font-size: 64px; }
+  #needle-fx h2 { color: #f0d060; font-size: 24px; }
+  #needle-fx button {
+    margin-top: 12px; padding: 12px 24px; border: none; border-radius: 12px;
+    background: #f0a820; color: #2a1600; font-weight: 800; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div id="demo-title">
+    <div class="t">Find The Needle Demo V23</div>
+    <div class="sub">Bugs might exist. Please report them on Discord.</div>
+  </div>
+  <div id="mission">
+    <div class="step" id="m-step">STEP 1 OF 46</div>
+    <div class="txt" id="m-txt">Pick hay from the mountain</div>
+    <div class="hint" id="m-hint">Walk up to the hay. Hold LMB / E to pick strands.</div>
+    <div class="bar"><i id="m-bar"></i></div>
+    <div class="prog" id="m-prog">$0.00 / $1.25 · $1.25 left</div>
+  </div>
+  <div id="money">$0.00</div>
+  <div id="hay-left">13,717,280 HAY LEFT</div>
+  <div id="rate">$0.00/min</div>
+  <div id="crosshair"></div>
+  <div id="prompt">
+    <div class="card">
+      <div class="key" id="prompt-key">E</div>
+      <div class="pinfo">
+        <div class="ptop" id="prompt-top">HOLD</div>
+        <div class="plab" id="prompt-lab">Pick hay</div>
+        <div class="psub" id="prompt-sub"></div>
+      </div>
+    </div>
+  </div>
+  <div id="toast"></div>
+  <div id="coin-pop">+$0.05</div>
+  <div id="hotbar">
+    <div class="slots">
+      <div class="slot active" data-slot="1"><span class="n">1</span><span class="ico">🖐️</span><span class="lab">HAND</span></div>
+      <div class="slot" data-slot="2"><span class="n">B</span><span class="ico">🧱</span><span class="lab">BUILD</span></div>
+      <div class="slot" data-slot="3"><span class="n">Q</span><span class="ico">⬇️</span><span class="lab">DROP</span></div>
+    </div>
+    <div class="hints">[B] Build catalogue · [Q] Drop · [E] Interact</div>
+  </div>
+</div>
+<div id="controls">
+  <div id="joy-zone"><div id="joy-base"><div id="joy-knob"></div></div></div>
+  <div id="look-zone"></div>
+  <button type="button" id="btn-interact" class="dim">HOLD<br/>/ USE</button>
+  <div id="desktop-hint">WASD + mouse · Hold E / LMB to pick · Q drop · E shop/sell</div>
+</div>
+<div id="shop">
+  <div id="shop-panel">
+    <h2>SUPPLY CO.</h2>
+    <div class="sub">Tools and containers</div>
+    <div class="avail" id="shop-avail">Available: $0.00</div>
+    <div id="shop-list"></div>
+    <button type="button" id="shop-close">Close</button>
+  </div>
+</div>
+<div id="needle-fx">
+  <div class="big">🪡</div>
+  <h2>Needle found!</h2>
+  <p>There was a needle in the haystack. Nice eye.</p>
+  <button type="button" id="needle-ok">Keep looking</button>
+</div>
+<div id="start-gate">
+  <h1>Find The Needle Demo V23</h1>
+  <p>Open dusty yard. Monumental hay mountain. Pick strands, sell at the stand, upgrade at Supply Co.</p>
+  <p style="font-size:12px;opacity:.65">Left joystick = move · Drag right = look · Hold button / E to pick</p>
+  <button type="button" id="btn-start">Enter the yard</button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const SAVE_KEY = 'pajar-aguja-3d-v3';
+const PAJA_INICIAL = 13717280;
+const PRECIO = 0.05;
+const GOAL = 1.25;
+const VISUAL_STRAW = 5500;
+const PICK_RATE = 8;
+const HAY_HEIGHT = 26;
+const FOV = 95;
+
+const state = {
+  monedas: 0,
+  pajaRestante: PAJA_INICIAL,
+  enMano: 0,
+  capacidad: 1,
+  tool: 'hand', // hand | toyshovel | spade | pitchfork | wheelbarrow
+  owned: { toyshovel: false, spade: false, pitchfork: false, wheelbarrow: false, bucket: false },
+  agujaEncontrada: false,
+  picksTotales: 0,
+  agujaAt: null,
+  mision: 0,
+  soldTotal: 0,
+  earnWindow: [],
+};
+
+function load() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    Object.assign(state, {
+      monedas: d.monedas ?? 0,
+      pajaRestante: d.pajaRestante ?? PAJA_INICIAL,
+      enMano: d.enMano ?? 0,
+      capacidad: d.capacidad ?? 1,
+      tool: d.tool ?? 'hand',
+      owned: Object.assign(state.owned, d.owned || {}),
+      agujaEncontrada: !!d.agujaEncontrada,
+      picksTotales: d.picksTotales ?? 0,
+      agujaAt: d.agujaAt ?? null,
+      mision: d.mision ?? 0,
+      soldTotal: d.soldTotal ?? 0,
+    });
+  } catch (_) {}
+}
+function save() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      monedas: state.monedas,
+      pajaRestante: state.pajaRestante,
+      enMano: state.enMano,
+      capacidad: state.capacidad,
+      tool: state.tool,
+      owned: state.owned,
+      agujaEncontrada: state.agujaEncontrada,
+      picksTotales: state.picksTotales,
+      agujaAt: state.agujaAt,
+      mision: state.mision,
+      soldTotal: state.soldTotal,
+    }));
+  } catch (_) {}
+}
+load();
+if (state.agujaAt == null) {
+  state.agujaAt = 80 + Math.floor(Math.random() * 400);
+}
+
+const TOOL_CAP = { hand: 1, toyshovel: 18, spade: 54, pitchfork: 62, wheelbarrow: 2100, bucket: 600 };
+function syncCap() {
+  state.capacidad = TOOL_CAP[state.tool] || 1;
+  if (state.enMano > state.capacidad) state.enMano = state.capacidad;
+}
+syncCap();
+
+const canvas = document.getElementById('c');
+const elMoney = document.getElementById('money');
+const elHay = document.getElementById('hay-left');
+const elRate = document.getElementById('rate');
+const elPrompt = document.getElementById('prompt');
+const elPromptTop = document.getElementById('prompt-top');
+const elPromptKey = document.getElementById('prompt-key');
+const elPromptLab = document.getElementById('prompt-lab');
+const elPromptSub = document.getElementById('prompt-sub');
+const elToast = document.getElementById('toast');
+const elCoin = document.getElementById('coin-pop');
+const elMStep = document.getElementById('m-step');
+const elMTxt = document.getElementById('m-txt');
+const elMHint = document.getElementById('m-hint');
+const elMProg = document.getElementById('m-prog');
+const elMBar = document.getElementById('m-bar');
+const btnInteract = document.getElementById('btn-interact');
+const shopEl = document.getElementById('shop');
+const shopList = document.getElementById('shop-list');
+const shopAvail = document.getElementById('shop-avail');
+const startGate = document.getElementById('start-gate');
+const needleFx = document.getElementById('needle-fx');
+
+function fmt$(n) { return '$' + n.toFixed(2); }
+function fmtN(n) { return Math.floor(n).toLocaleString('en-US'); }
+
+let toastTimer = 0;
+function toast(msg) {
+  elToast.textContent = msg;
+  elToast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => elToast.classList.remove('show'), 1800);
+}
+
+function updateHUD() {
+  elMoney.textContent = fmt$(state.monedas);
+  elHay.textContent = fmtN(state.pajaRestante) + ' HAY LEFT';
+  const now = performance.now();
+  state.earnWindow = state.earnWindow.filter(e => now - e.t < 60000);
+  const perMin = state.earnWindow.reduce((a, e) => a + e.v, 0);
+  elRate.textContent = fmt$(perMin) + '/min';
+
+  const steps = [
+    [1, 'Pick hay from the mountain', 'Walk up to the hay. Hold LMB / E to pick strands.'],
+    [2, 'Sell hay at the stand', 'The selling stand is in the far corner. Walk there. Stand at the open bay and press LMB to drop the hay in. You get money for it.'],
+    [3, 'Visit Supply Co.', 'Open the shop and buy a tool. Toy Shovel is $0.25.'],
+    [4, 'Sell hay at the stand', 'Keep selling until you reach $1.25. Buy better tools.'],
+    [5, 'Keep searching for the needle', 'Hold pick near the mountain. The needle is somewhere in there.'],
+  ];
+  let mi = Math.min(state.mision, 4);
+  if (state.agujaEncontrada) mi = 4;
+  const s = steps[mi];
+  const stepNum = [1, 2, 3, 4, 5][mi];
+  elMStep.textContent = 'STEP ' + stepNum + ' OF 46';
+  elMTxt.textContent = s[1];
+  elMHint.textContent = s[2];
+  const left = Math.max(0, GOAL - state.monedas);
+  elMProg.textContent = fmt$(state.monedas) + ' / ' + fmt$(GOAL) + ' · ' + fmt$(left) + ' left';
+  elMBar.style.width = Math.min(100, (state.monedas / GOAL) * 100) + '%';
+  updateHandVisual();
+}
+
+// —— Three.js ——
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setSize(window.innerWidth, window.innerHeight, false);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.35;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x7eb6ea);
+scene.fog = new THREE.Fog(0xb8d4f0, 70, 140);
+
+const camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.1, 220);
+camera.position.set(0, 1.7, 22);
+
+// Sky dome
+{
+  const skyGeo = new THREE.SphereGeometry(180, 32, 16);
+  const skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    uniforms: {},
+    vertexShader: `
+      varying vec3 vPos;
+      void main() {
+        vPos = position;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vPos;
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+      float noise(vec2 p){
+        vec2 i = floor(p); vec2 f = fract(p);
+        float a = hash(i), b = hash(i+vec2(1,0)), c = hash(i+vec2(0,1)), d = hash(i+vec2(1,1));
+        vec2 u = f*f*(3.0-2.0*f);
+        return mix(a,b,u.x) + (c-a)*u.y*(1.0-u.x) + (d-b)*u.x*u.y;
+      }
+      void main() {
+        vec3 n = normalize(vPos);
+        float h = n.y * 0.5 + 0.5;
+        vec3 zenith = vec3(0.28, 0.58, 0.95);
+        vec3 horizon = vec3(0.78, 0.88, 0.98);
+        vec3 col = mix(horizon, zenith, smoothstep(0.0, 0.9, h));
+        float c = noise(n.xz * 2.8 + n.y * 0.5);
+        c = smoothstep(0.48, 0.78, c) * smoothstep(0.02, 0.5, n.y);
+        col = mix(col, vec3(1.0), c * 0.5);
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  });
+  scene.add(new THREE.Mesh(skyGeo, skyMat));
+}
+
+const hemi = new THREE.HemisphereLight(0xfff0d8, 0x8a7a60, 0.6);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff0c8, 2.4);
+sun.position.set(22, 48, 14);
+sun.target.position.set(-2, 0, -8);
+scene.add(sun.target);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.near = 5;
+sun.shadow.camera.far = 110;
+sun.shadow.camera.left = -42;
+sun.shadow.camera.right = 42;
+sun.shadow.camera.top = 42;
+sun.shadow.camera.bottom = -42;
+sun.shadow.bias = -0.00035;
+sun.shadow.normalBias = 0.035;
+sun.shadow.radius = 2.5;
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0xa8c8f0, 0.4);
+fill.position.set(-22, 20, -10);
+scene.add(fill);
+scene.add(new THREE.AmbientLight(0xd0dff0, 0.28));
+
+function makeMat(color, rough = 0.9, metal = 0.05) {
+  return new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
+}
+
+const yard = new THREE.Group();
+scene.add(yard);
+
+// Dusty packed earth with subtle track marks via canvas texture
+function makeGroundTex() {
+  const sc = document.createElement('canvas');
+  sc.width = 512; sc.height = 512;
+  const ctx = sc.getContext('2d');
+  // Light dusty packed earth
+  ctx.fillStyle = '#cbb892';
+  ctx.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 14000; i++) {
+    const x = Math.random() * 512, y = Math.random() * 512;
+    const v = 150 + Math.random() * 70;
+    const a = 0.08 + Math.random() * 0.22;
+    ctx.fillStyle = `rgba(${v},${v - 18},${v - 48},${a})`;
+    ctx.fillRect(x, y, 1 + Math.random() * 2.5, 1 + Math.random() * 2.5);
+  }
+  // Soft mottled patches (dust / packed spots)
+  for (let i = 0; i < 80; i++) {
+    const x = Math.random() * 512, y = Math.random() * 512;
+    const r = 8 + Math.random() * 28;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(140,110,70,${0.08 + Math.random() * 0.1})`);
+    g.addColorStop(1, 'rgba(140,110,70,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  // Very faint irregular tracks (not parallel wood grain)
+  ctx.strokeStyle = 'rgba(100,78,45,0.1)';
+  ctx.lineWidth = 4;
+  for (let t = 0; t < 3; t++) {
+    ctx.beginPath();
+    let x = 40 + Math.random() * 400, y = 0;
+    ctx.moveTo(x, y);
+    while (y < 512) {
+      y += 12 + Math.random() * 18;
+      x += (Math.random() - 0.5) * 22;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  const tex = new THREE.CanvasTexture(sc);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(6, 6);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(100, 100),
+  new THREE.MeshStandardMaterial({
+    map: makeGroundTex(), color: 0xffffff, roughness: 0.97, metalness: 0.02,
+  })
+);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+yard.add(floor);
+
+const WALL_H = 28;
+const WALL_LEN = 56;
+
+function addFlatWall(width, height, x, y, z, rotY, baseColor) {
+  const g = new THREE.Group();
+  g.position.set(x, y, z);
+  g.rotation.y = rotY;
+  const panel = new THREE.Mesh(
+    new THREE.BoxGeometry(width, height, 0.32),
+    makeMat(baseColor, 0.93, 0.03)
+  );
+  panel.castShadow = true;
+  panel.receiveShadow = true;
+  g.add(panel);
+  const seamMat = makeMat(new THREE.Color(baseColor).offsetHSL(0, 0, -0.06).getHex(), 0.9);
+  const seams = Math.floor(width / 1.35);
+  for (let i = 0; i < seams; i++) {
+    const seam = new THREE.Mesh(new THREE.BoxGeometry(0.05, height * 0.98, 0.07), seamMat);
+    seam.position.set(-width / 2 + 0.65 + i * 1.35, 0, 0.18);
+    g.add(seam);
+  }
+  const pillarMat = makeMat(0x2e2822, 0.8, 0.18);
+  for (const sx of [-width / 2 + 0.18, width / 2 - 0.18]) {
+    const p = new THREE.Mesh(new THREE.BoxGeometry(0.5, height + 0.5, 0.5), pillarMat);
+    p.position.set(sx, 0, 0.04);
+    p.castShadow = true;
+    g.add(p);
+  }
+  yard.add(g);
+}
+
+const wallWood = 0xc8b090;
+addFlatWall(WALL_LEN, WALL_H, 0, WALL_H / 2, -32, 0, wallWood);
+addFlatWall(WALL_LEN, WALL_H, -32, WALL_H / 2, 0, Math.PI / 2, 0xc0a888);
+addFlatWall(WALL_LEN, WALL_H, 32, WALL_H / 2, 0, -Math.PI / 2, 0xb8a080);
+addFlatWall(16, WALL_H, -20, WALL_H / 2, 32, Math.PI, wallWood);
+addFlatWall(16, WALL_H, 20, WALL_H / 2, 32, Math.PI, wallWood);
+
+// Open roof: thin dark metal arches / trusses only
+const beamMat = makeMat(0x2a2622, 0.65, 0.4);
+for (let i = -4; i <= 4; i++) {
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.35, 64), beamMat);
+  beam.position.set(i * 7, WALL_H + 0.8, 0);
+  beam.castShadow = true;
+  yard.add(beam);
+}
+for (let z = -24; z <= 24; z += 12) {
+  const arch = new THREE.Mesh(new THREE.BoxGeometry(64, 0.28, 0.28), beamMat);
+  arch.position.set(0, WALL_H + 1.6, z);
+  yard.add(arch);
+  // curved-looking braces via angled boxes
+  for (const side of [-1, 1]) {
+    const brace = new THREE.Mesh(new THREE.BoxGeometry(0.2, 10, 0.2), beamMat);
+    brace.position.set(side * 22, WALL_H - 4, z);
+    brace.rotation.z = side * 0.5;
+    yard.add(brace);
+  }
+}
+
+// —— Hay mountain: soft shaded golden volume + outer shell of ultra-thin straws ——
+const hayGroup = new THREE.Group();
+hayGroup.position.set(-2, 0, -10);
+scene.add(hayGroup);
+
+const underShadow = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 24, 14),
+  new THREE.MeshStandardMaterial({
+    color: 0x3a3010, flatShading: false, transparent: true, opacity: 0.35, depthWrite: false,
+  })
+);
+underShadow.scale.set(14, 0.28, 14);
+underShadow.position.y = 0.04;
+underShadow.receiveShadow = true;
+hayGroup.add(underShadow);
+
+// Soft volume mesh — monolithic golden cone from afar
+function makeHayVolumeMat() {
+  return new THREE.ShaderMaterial({
+    lights: false,
+    uniforms: {
+      uSunDir: { value: new THREE.Vector3(0.4, 0.85, 0.3).normalize() },
+      uColorLit: { value: new THREE.Color(0xffe566) },
+      uColorMid: { value: new THREE.Color(0xf5c842) },
+      uColorSha: { value: new THREE.Color(0xc9952e) },
+    },
+    vertexShader: `
+      varying vec3 vN;
+      varying vec3 vW;
+      void main() {
+        vN = normalize(normalMatrix * normal);
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vW = wp.xyz;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uSunDir, uColorLit, uColorMid, uColorSha;
+      varying vec3 vN;
+      varying vec3 vW;
+      float hash(vec3 p){ return fract(sin(dot(p, vec3(127.1,311.7,74.7))) * 43758.5453); }
+      void main() {
+        vec3 n = normalize(vN);
+        float ndl = clamp(dot(n, uSunDir), 0.0, 1.0);
+        float wrap = ndl * 0.7 + 0.3;
+        vec3 col = mix(uColorSha, uColorMid, smoothstep(0.0, 0.45, wrap));
+        col = mix(col, uColorLit, smoothstep(0.45, 1.0, wrap));
+        float nse = hash(floor(vW * 3.5)) * 0.08 - 0.04;
+        col += nse;
+        // slight rim
+        float rim = pow(1.0 - abs(n.y), 2.0) * 0.08;
+        col += rim * uColorLit;
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  });
+}
+const volMat = makeHayVolumeMat();
+// Rounded mountain: cone + slight sphere blend via scaled cone
+const innerCone = new THREE.Mesh(
+  new THREE.ConeGeometry(12.5, HAY_HEIGHT, 48, 1, false),
+  volMat
+);
+innerCone.position.y = HAY_HEIGHT * 0.5;
+innerCone.castShadow = true;
+innerCone.receiveShadow = true;
+hayGroup.add(innerCone);
+// Soft base bulge
+const baseBulge = new THREE.Mesh(
+  new THREE.SphereGeometry(11.5, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.45),
+  volMat
+);
+baseBulge.position.y = 1.2;
+baseBulge.scale.set(1.05, 0.55, 1.05);
+baseBulge.castShadow = true;
+hayGroup.add(baseBulge);
+
+const strawGeo = new THREE.CapsuleGeometry(0.011, 1.15, 2, 4);
+const strawMat = new THREE.MeshStandardMaterial({
+  color: 0xffe566,
+  roughness: 0.82,
+  metalness: 0,
+});
+const strawMesh = new THREE.InstancedMesh(strawGeo, strawMat, VISUAL_STRAW);
+strawMesh.castShadow = true;
+strawMesh.receiveShadow = true;
+strawMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+hayGroup.add(strawMesh);
+
+const dummy = new THREE.Object3D();
+const STRAW_HEX = [0xffe566, 0xf5c842, 0xe8b84a, 0xc9952e, 0xd4a84b];
+const _c = new THREE.Color();
+
+function seededRand(i) {
+  const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+function placeStraw(i, scalePile = 1) {
+  const r0 = seededRand(i);
+  const r1 = seededRand(i + 17);
+  const r2 = seededRand(i + 41);
+  const r3 = seededRand(i + 73);
+  const r4 = seededRand(i + 101);
+  const r5 = seededRand(i + 139);
+
+  const hNorm = Math.pow(r0, 0.58);
+  const maxH = HAY_HEIGHT * scalePile;
+  const y = 0.35 + hNorm * maxH;
+  const radiusAtH = (1.0 - hNorm * 0.96) * 13.8 * scalePile;
+  const shell = 0.78 + r2 * 0.22;
+  const angle = r1 * Math.PI * 2 + i * 0.618033;
+  const r = radiusAtH * Math.sqrt(shell);
+  const x = Math.cos(angle) * r + (r3 - 0.5) * 0.4;
+  const z = Math.sin(angle) * r + (r4 - 0.5) * 0.4;
+
+  dummy.position.set(x, y, z);
+  const chaos = 0.55 + hNorm * 1.5;
+  dummy.rotation.set(
+    (r0 - 0.5) * chaos * 2.0,
+    r1 * Math.PI * 2,
+    (r2 - 0.5) * chaos * 1.8
+  );
+  const len = 0.85 + r5 * 1.35;
+  const thin = 0.4 + r3 * 0.55;
+  dummy.scale.set(thin, len, thin);
+  dummy.updateMatrix();
+  strawMesh.setMatrixAt(i, dummy.matrix);
+
+  let ci;
+  const roll = r4;
+  if (roll < 0.32) ci = 0;
+  else if (roll < 0.58) ci = 1;
+  else if (roll < 0.78) ci = 2;
+  else if (roll < 0.92) ci = 3;
+  else ci = 4;
+  _c.setHex(STRAW_HEX[ci]);
+  _c.offsetHSL(0, 0.04, (r5 - 0.4) * 0.08);
+  strawMesh.setColorAt(i, _c);
+}
+
+const pileScale = () => Math.max(0.35, Math.pow(Math.min(1, state.pajaRestante / PAJA_INICIAL), 0.35));
+
+function rebuildHaystack() {
+  const sc = pileScale();
+  const visible = Math.max(200, Math.floor(VISUAL_STRAW * Math.max(0.08, Math.min(1, state.pajaRestante / Math.min(PAJA_INICIAL, 500000)))));
+  for (let i = 0; i < VISUAL_STRAW; i++) {
+    if (i < visible) {
+      placeStraw(i, sc);
+    } else {
+      dummy.position.set(0, -200, 0);
+      dummy.scale.set(0, 0, 0);
+      dummy.updateMatrix();
+      strawMesh.setMatrixAt(i, dummy.matrix);
+    }
+  }
+  strawMesh.instanceMatrix.needsUpdate = true;
+  strawMesh.count = visible;
+  if (strawMesh.instanceColor) strawMesh.instanceColor.needsUpdate = true;
+  underShadow.scale.set(14 * sc, 0.28, 14 * sc);
+  innerCone.scale.set(sc, sc, sc);
+  innerCone.position.y = HAY_HEIGHT * 0.5 * sc;
+  baseBulge.scale.set(1.05 * sc, 0.55 * sc, 1.05 * sc);
+  baseBulge.position.y = 1.2 * sc;
+}
+rebuildHaystack();
+
+const hayCollider = new THREE.Vector3(-2, 0, -10);
+const HAY_RADIUS = 16;
+
+function makeSignTexture(text, opts = {}) {
+  const w = opts.w || 512, h = opts.h || 128;
+  const sc = document.createElement('canvas');
+  sc.width = w; sc.height = h;
+  const ctx = sc.getContext('2d');
+  ctx.fillStyle = opts.bg || '#f5f0e6';
+  ctx.fillRect(0, 0, w, h);
+  if (opts.border) {
+    ctx.strokeStyle = opts.border;
+    ctx.lineWidth = opts.bw || 10;
+    ctx.strokeRect(6, 6, w - 12, h - 12);
+  }
+  ctx.fillStyle = opts.fg || '#1a1208';
+  ctx.font = opts.font || `bold ${Math.floor(h * 0.38)}px system-ui,sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const lines = String(text).split('\n');
+  const lh = h * 0.32;
+  const startY = h / 2 - ((lines.length - 1) * lh) / 2;
+  lines.forEach((ln, i) => ctx.fillText(ln, w / 2, startY + i * lh));
+  const tex = new THREE.CanvasTexture(sc);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function makeSmallPrice(label) {
+  return makeSignTexture(label, {
+    w: 256, h: 96, bg: '#faf8f2', border: '#111', bw: 6,
+    font: 'bold 28px system-ui,sans-serif', fg: '#111',
+  });
+}
+
+function makePricesBoard() {
+  const sc = document.createElement('canvas');
+  sc.width = 280; sc.height = 400;
+  const ctx = sc.getContext('2d');
+  ctx.fillStyle = '#111';
+  ctx.fillRect(0, 0, 280, 400);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 32px system-ui,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('PRICES', 140, 42);
+  ctx.font = '18px system-ui,sans-serif';
+  ctx.textAlign = 'left';
+  const lines = [
+    ['Toy Shovel', '$0.25'],
+    ['Spade', '$12'],
+    ['Pitchfork', '$30'],
+    ['Wheelbarrow', '$150'],
+    ['Bucket', '$10'],
+  ];
+  lines.forEach((L, i) => {
+    ctx.fillStyle = '#eee';
+    ctx.fillText(L[0], 24, 100 + i * 52);
+    ctx.fillStyle = '#9f9';
+    ctx.fillText(L[1], 24, 122 + i * 52);
+  });
+  const tex = new THREE.CanvasTexture(sc);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+// —— Sell bay: simple dark open bay / trailer in far corner ——
+const sellGroup = new THREE.Group();
+sellGroup.position.set(18, 0, -18);
+scene.add(sellGroup);
+
+{
+  const dark = makeMat(0x222428, 0.72, 0.22);
+  const wood = makeMat(0x4a3828, 0.88);
+  // Bay structure — open front
+  const floorBay = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.15, 3.2), dark);
+  floorBay.position.y = 0.3;
+  floorBay.receiveShadow = true;
+  sellGroup.add(floorBay);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(4.2, 2.8, 0.2), dark);
+  back.position.set(0, 1.7, -1.5);
+  back.castShadow = true;
+  sellGroup.add(back);
+  const left = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.8, 3.0), dark);
+  left.position.set(-2.0, 1.7, 0);
+  sellGroup.add(left);
+  const right = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.8, 3.0), dark);
+  right.position.set(2.0, 1.7, 0);
+  sellGroup.add(right);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.12, 3.4), makeMat(0x1a1c20, 0.65, 0.3));
+  roof.position.set(0, 3.15, 0);
+  sellGroup.add(roof);
+  // Drop counter / bay lip
+  const counter = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.14, 0.7), wood);
+  counter.position.set(0, 1.05, 1.4);
+  sellGroup.add(counter);
+  const sign = new THREE.Mesh(
+    new THREE.BoxGeometry(3.2, 0.6, 0.06),
+    new THREE.MeshStandardMaterial({
+      map: makeSignTexture('SELL HAY', { w: 512, h: 120, bg: '#f8f4ec', border: '#111', font: 'bold 52px system-ui,sans-serif' }),
+    })
+  );
+  sign.position.set(0, 3.55, 0.2);
+  sellGroup.add(sign);
+}
+const dropZone = new THREE.Mesh(
+  new THREE.BoxGeometry(2.2, 0.05, 0.9),
+  new THREE.MeshStandardMaterial({ color: 0x2ee86a, transparent: true, opacity: 0.22 })
+);
+dropZone.position.set(0, 1.14, 1.45);
+sellGroup.add(dropZone);
+
+const sellFx = [];
+const sellFxGeo = new THREE.CapsuleGeometry(0.012, 0.4, 2, 4);
+const sellFxMat = new THREE.MeshStandardMaterial({ color: 0xffe566, roughness: 0.75 });
+for (let i = 0; i < 10; i++) {
+  const m = new THREE.Mesh(sellFxGeo, sellFxMat);
+  m.visible = false;
+  scene.add(m);
+  sellFx.push({ mesh: m, t: 0, active: false, from: new THREE.Vector3(), to: new THREE.Vector3() });
+}
+const sellPos = sellGroup.position.clone();
+
+// —— Supply Co. shop ——
+const shopGroup = new THREE.Group();
+shopGroup.position.set(-20, 0, 10);
+scene.add(shopGroup);
+
+{
+  const wood = makeMat(0x3d2a1a, 0.88);
+  const woodLite = makeMat(0x5a3e28, 0.85);
+  // Dark wooden counter
+  const base = new THREE.Mesh(new THREE.BoxGeometry(5.5, 1.15, 1.5), wood);
+  base.position.y = 0.58;
+  base.castShadow = true;
+  shopGroup.add(base);
+  const top = new THREE.Mesh(new THREE.BoxGeometry(5.7, 0.1, 1.7), woodLite);
+  top.position.y = 1.2;
+  shopGroup.add(top);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(5.5, 2.4, 0.15), wood);
+  back.position.set(0, 2.0, -0.7);
+  shopGroup.add(back);
+  // SUPPLY CO. sign
+  const sign = new THREE.Mesh(
+    new THREE.BoxGeometry(3.0, 0.55, 0.06),
+    new THREE.MeshStandardMaterial({
+      map: makeSignTexture('SUPPLY CO.', { w: 512, h: 120, bg: '#f8f4ec', border: '#c41e1e', font: 'bold 48px system-ui,sans-serif' }),
+    })
+  );
+  sign.position.set(0, 3.4, -0.65);
+  shopGroup.add(sign);
+  // White awning
+  const awn = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.08, 1.6), makeMat(0xf0ece4, 0.8));
+  awn.position.set(0, 2.9, 0.35);
+  awn.rotation.x = -0.25;
+  shopGroup.add(awn);
+
+  // Price signs on counter front
+  const prices = [
+    ['TOY SHOVEL\n$0.25', -2.0],
+    ['SPADE\n$12', -0.7],
+    ['PITCHFORK\n$30', 0.6],
+    ['WHEELBARROW\n$150', 1.9],
+  ];
+  prices.forEach(([lab, x]) => {
+    const s = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.0, 0.45),
+      new THREE.MeshStandardMaterial({ map: makeSmallPrice(lab), side: THREE.DoubleSide })
+    );
+    s.position.set(x, 0.85, 0.78);
+    shopGroup.add(s);
+  });
+
+  // Yellow toy shovel on counter
+  const shovelG = new THREE.Group();
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.7, 8), makeMat(0xf0c020));
+  handle.rotation.z = 0.9;
+  handle.position.set(0, 0.15, 0);
+  shovelG.add(handle);
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.28), makeMat(0xf5d040));
+  blade.position.set(0.28, -0.05, 0);
+  shovelG.add(blade);
+  shovelG.position.set(-1.6, 1.3, 0.1);
+  shopGroup.add(shovelG);
+
+  // Wooden bucket
+  const bucket = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.45, 12), makeMat(0x6b4423, 0.7, 0.15));
+  bucket.position.set(-0.5, 1.45, 0.15);
+  shopGroup.add(bucket);
+  const band = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.02, 6, 16), makeMat(0x444, 0.4, 0.6));
+  band.rotation.x = Math.PI / 2;
+  band.position.set(-0.5, 1.35, 0.15);
+  shopGroup.add(band);
+
+  // Pitchfork on back wall
+  const fork = new THREE.Group();
+  const fhandle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.4, 6), makeMat(0x5a3a18));
+  fork.add(fhandle);
+  for (let i = -1; i <= 1; i++) {
+    const tine = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.008, 0.45, 4), makeMat(0x888, 0.4, 0.5));
+    tine.position.set(i * 0.06, 0.85, 0);
+    fork.add(tine);
+  }
+  fork.position.set(1.2, 2.2, -0.55);
+  fork.rotation.z = -0.15;
+  shopGroup.add(fork);
+
+  // Spade on wall
+  const spade = new THREE.Group();
+  const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.1, 6), makeMat(0x5a3a18));
+  spade.add(sh);
+  const sb = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.35, 0.03), makeMat(0x777, 0.4, 0.45));
+  sb.position.y = -0.65;
+  spade.add(sb);
+  spade.position.set(0.3, 2.1, -0.55);
+  shopGroup.add(spade);
+
+  // A-frame PRICES board
+  const board = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.9, 1.25),
+    new THREE.MeshStandardMaterial({ map: makePricesBoard(), side: THREE.DoubleSide })
+  );
+  board.position.set(3.2, 0.9, 1.3);
+  board.rotation.y = -0.5;
+  shopGroup.add(board);
+
+  // Red wheelbarrow on pallet
+  const wb = new THREE.Group();
+  const tray = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.35, 0.65), makeMat(0xb01810, 0.7));
+  tray.position.set(0, 0.45, 0);
+  tray.rotation.z = 0.12;
+  wb.add(tray);
+  const wh = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.05, 8, 18), makeMat(0x222, 0.5, 0.4));
+  wh.rotation.y = Math.PI / 2;
+  wh.position.set(-0.45, 0.28, 0);
+  wb.add(wh);
+  const h1 = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.9, 6), makeMat(0x333));
+  h1.rotation.z = 1.2;
+  h1.position.set(0.55, 0.55, 0.18);
+  wb.add(h1);
+  const h2 = h1.clone();
+  h2.position.z = -0.18;
+  wb.add(h2);
+  // pallet
+  const pallet = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.12, 0.9), makeMat(0x8b6914));
+  pallet.position.set(0, 0.06, 0);
+  wb.add(pallet);
+  wb.position.set(-2.8, 0, 1.8);
+  wb.rotation.y = 0.6;
+  shopGroup.add(wb);
+}
+const shopPos = shopGroup.position.clone();
+
+// Ambient props
+function addBarrel(x, z) {
+  const b = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.44, 1.0, 12), makeMat(0x5a4030, 0.7, 0.2));
+  b.position.set(x, 0.5, z);
+  b.castShadow = true;
+  scene.add(b);
+}
+addBarrel(24, -8);
+addBarrel(25.2, -7.2);
+addBarrel(-24, -16);
+
+// Pick particle bits
+const pickBits = [];
+const bitGeo = new THREE.CapsuleGeometry(0.008, 0.18, 2, 3);
+for (let i = 0; i < 24; i++) {
+  const m = new THREE.Mesh(bitGeo, new THREE.MeshStandardMaterial({
+    color: STRAW_HEX[i % STRAW_HEX.length], roughness: 0.8,
+  }));
+  m.visible = false;
+  scene.add(m);
+  pickBits.push({
+    mesh: m, active: false, t: 0, life: 0.45,
+    vel: new THREE.Vector3(), pos: new THREE.Vector3(),
+  });
+}
+function burstPick() {
+  const origin = camera.position.clone().add(new THREE.Vector3(0, -0.15, -1.2)
+    .applyQuaternion(camera.quaternion));
+  let spawned = 0;
+  for (const b of pickBits) {
+    if (b.active) continue;
+    b.active = true;
+    b.t = 0;
+    b.life = 0.35 + Math.random() * 0.25;
+    b.pos.copy(origin);
+    b.vel.set((Math.random() - 0.5) * 2.5, 1.5 + Math.random() * 2, (Math.random() - 0.5) * 2.5);
+    b.mesh.visible = true;
+    b.mesh.position.copy(origin);
+    b.mesh.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+    if (++spawned >= 6) break;
+  }
+}
+
+// —— Player ——
+const player = {
+  pos: new THREE.Vector3(6, 0, 20),
+  yaw: 0.15,
+  pitch: -0.12,
+  vel: new THREE.Vector3(),
+  speed: 5.5,
+  eye: 1.7,
+};
+
+const keys = {};
+const moveInput = { x: 0, y: 0 };
+let lookDragging = false;
+let lastLookX = 0, lastLookY = 0;
+let interactHeld = false;
+let nearTarget = null;
+let started = false;
+let pickAcc = 0;
+let activeSlot = 1;
+
+const handGroup = new THREE.Group();
+camera.add(handGroup);
+handGroup.position.set(0.05, -0.48, -0.75);
+const heldStraws = [];
+const heldGeo = new THREE.CapsuleGeometry(0.012, 0.42, 2, 4);
+for (let i = 0; i < 20; i++) {
+  const m = new THREE.Mesh(heldGeo, new THREE.MeshStandardMaterial({
+    color: STRAW_HEX[i % STRAW_HEX.length], roughness: 0.8,
+  }));
+  m.visible = false;
+  handGroup.add(m);
+  heldStraws.push(m);
+}
+
+function updateHandVisual() {
+  const show = state.enMano > 0
+    ? Math.min(heldStraws.length, Math.max(1, Math.min(state.enMano, 16)))
+    : 0;
+  for (let i = 0; i < heldStraws.length; i++) {
+    const m = heldStraws[i];
+    if (i < show) {
+      m.visible = true;
+      m.position.set(
+        (i % 5) * 0.035 - 0.07,
+        Math.floor(i / 5) * 0.04,
+        (i % 3) * 0.028
+      );
+      m.rotation.set(0.5 + i * 0.07, i * 0.45, 0.25 + i * 0.035);
+      m.scale.setScalar(0.9 + Math.min(i, 8) * 0.02);
+    } else {
+      m.visible = false;
+    }
+  }
+}
+
+// Joystick
+const joyBase = document.getElementById('joy-base');
+const joyKnob = document.getElementById('joy-knob');
+const joyZone = document.getElementById('joy-zone');
+let joyActive = false;
+let joyId = null;
+const JOY_MAX = 42;
+
+function setKnob(dx, dy) {
+  const len = Math.hypot(dx, dy) || 1;
+  const cl = Math.min(len, JOY_MAX);
+  const nx = (dx / len) * cl;
+  const ny = (dy / len) * cl;
+  joyKnob.style.transform = `translate(${nx}px, ${ny}px)`;
+  moveInput.x = nx / JOY_MAX;
+  moveInput.y = -ny / JOY_MAX;
+}
+function resetJoy() {
+  joyActive = false;
+  joyId = null;
+  joyKnob.style.transform = 'translate(0,0)';
+  moveInput.x = 0;
+  moveInput.y = 0;
+}
+
+joyZone.addEventListener('pointerdown', (e) => {
+  if (!started) return;
+  e.preventDefault();
+  joyActive = true;
+  joyId = e.pointerId;
+  joyZone.setPointerCapture(e.pointerId);
+  const rect = joyBase.getBoundingClientRect();
+  setKnob(e.clientX - (rect.left + rect.width / 2), e.clientY - (rect.top + rect.height / 2));
+});
+joyZone.addEventListener('pointermove', (e) => {
+  if (!joyActive || e.pointerId !== joyId) return;
+  const rect = joyBase.getBoundingClientRect();
+  setKnob(e.clientX - (rect.left + rect.width / 2), e.clientY - (rect.top + rect.height / 2));
+});
+joyZone.addEventListener('pointerup', resetJoy);
+joyZone.addEventListener('pointercancel', resetJoy);
+
+const lookZone = document.getElementById('look-zone');
+const LOOK_SENS = 0.0045;
+lookZone.addEventListener('pointerdown', (e) => {
+  if (!started) return;
+  if (e.target === btnInteract || btnInteract.contains(e.target)) return;
+  lookDragging = true;
+  lastLookX = e.clientX;
+  lastLookY = e.clientY;
+  lookZone.setPointerCapture(e.pointerId);
+});
+lookZone.addEventListener('pointermove', (e) => {
+  if (!lookDragging) return;
+  const dx = e.clientX - lastLookX;
+  const dy = e.clientY - lastLookY;
+  lastLookX = e.clientX;
+  lastLookY = e.clientY;
+  player.yaw -= dx * LOOK_SENS;
+  player.pitch -= dy * LOOK_SENS;
+  player.pitch = Math.max(-1.35, Math.min(1.35, player.pitch));
+});
+lookZone.addEventListener('pointerup', () => { lookDragging = false; });
+lookZone.addEventListener('pointercancel', () => { lookDragging = false; });
+
+function setSlot(n) {
+  activeSlot = n;
+  document.querySelectorAll('#hotbar .slot').forEach((el) => {
+    el.classList.toggle('active', Number(el.dataset.slot) === n);
+  });
+  if (n === 3 && state.enMano > 0) {
+    // Drop at feet
+    dropAtFeet();
+  }
+  if (n === 2) toast('Build catalogue — coming soon');
+}
+
+function dropAtFeet() {
+  if (state.enMano <= 0) return;
+  state.pajaRestante += state.enMano;
+  state.enMano = 0;
+  toast('Dropped hay');
+  updateHUD();
+  save();
+}
+
+window.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+  if (e.code === 'KeyE') interactHeld = true;
+  if (e.code === 'Digit1') setSlot(1);
+  if (e.code === 'KeyB' || e.code === 'Digit2') setSlot(2);
+  if (e.code === 'KeyQ' || e.code === 'Digit3' || e.code === 'Digit9') setSlot(3);
+  if (e.code === 'KeyG') dropAtFeet();
+});
+window.addEventListener('keyup', (e) => {
+  keys[e.code] = false;
+  if (e.code === 'KeyE') interactHeld = false;
+});
+
+let pointerLocked = false;
+canvas.addEventListener('click', () => {
+  if (!started) return;
+  if (!('ontouchstart' in window)) canvas.requestPointerLock?.();
+});
+document.addEventListener('pointerlockchange', () => {
+  pointerLocked = document.pointerLockElement === canvas;
+});
+document.addEventListener('mousemove', (e) => {
+  if (!pointerLocked) return;
+  player.yaw -= e.movementX * 0.0022;
+  player.pitch -= e.movementY * 0.0022;
+  player.pitch = Math.max(-1.35, Math.min(1.35, player.pitch));
+});
+document.addEventListener('mousedown', (e) => {
+  if (!started || shopEl.classList.contains('open')) return;
+  if (e.button === 0) {
+    interactHeld = true;
+    doInteractTap();
+  }
+});
+document.addEventListener('mouseup', (e) => {
+  if (e.button === 0) interactHeld = false;
+});
+
+btnInteract.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  interactHeld = true;
+  btnInteract.classList.add('held');
+  doInteractTap();
+});
+btnInteract.addEventListener('pointerup', () => {
+  interactHeld = false;
+  btnInteract.classList.remove('held');
+});
+btnInteract.addEventListener('pointercancel', () => {
+  interactHeld = false;
+  btnInteract.classList.remove('held');
+});
+btnInteract.addEventListener('contextmenu', (e) => e.preventDefault());
+
+document.getElementById('btn-start').addEventListener('click', () => {
+  started = true;
+  startGate.style.display = 'none';
+});
+document.getElementById('shop-close').addEventListener('click', () => {
+  shopEl.classList.remove('open');
+});
+document.getElementById('needle-ok').addEventListener('click', () => {
+  needleFx.classList.remove('open');
+});
+
+function distXZ(a, b) {
+  return Math.hypot(a.x - b.x, a.z - b.z);
+}
+
+function updateNear() {
+  const p = player.pos;
+  const dHay = distXZ(p, hayCollider);
+  const dSell = distXZ(p, sellPos);
+  const dShop = distXZ(p, shopPos);
+  nearTarget = null;
+  let show = false;
+  let can = false;
+  elPromptSub.textContent = '';
+  elPromptKey.className = 'key';
+
+  if (dHay < HAY_RADIUS) {
+    nearTarget = 'hay';
+    if (state.enMano >= state.capacidad) {
+      elPromptTop.textContent = 'FULL';
+      elPromptKey.textContent = '!';
+      elPromptLab.textContent = 'Hands full';
+      elPromptSub.textContent = 'Sell at the stand';
+      show = true;
+    } else if (state.pajaRestante <= 0) {
+      elPromptTop.textContent = '';
+      elPromptKey.textContent = '—';
+      elPromptLab.textContent = 'Hay mountain empty';
+      show = true;
+    } else {
+      elPromptTop.textContent = 'HOLD';
+      elPromptKey.textContent = 'E';
+      elPromptLab.textContent = 'Pick hay';
+      elPromptSub.textContent = state.enMano + ' / ' + state.capacidad + ' in hand';
+      show = true;
+      can = true;
+    }
+  } else if (dSell < 4.5) {
+    nearTarget = 'sell';
+    if (state.enMano > 0) {
+      elPromptTop.textContent = 'PRESS';
+      elPromptKey.textContent = 'LMB';
+      elPromptLab.textContent = 'Drop hay';
+      elPromptSub.textContent = 'Sell at the bay · ' + fmt$(state.enMano * PRECIO);
+      show = true;
+      can = true;
+    } else {
+      elPromptTop.textContent = '';
+      elPromptKey.textContent = '$';
+      elPromptLab.textContent = 'Sell bay';
+      elPromptSub.textContent = 'Bring hay to drop';
+      show = true;
+    }
+  } else if (dShop < 4.5) {
+    nearTarget = 'shop';
+    elPromptTop.textContent = '';
+    elPromptKey.textContent = 'E';
+    elPromptLab.textContent = 'OPEN SHOP';
+    elPromptSub.textContent = 'Supply Co. — tools, buckets and barrows';
+    show = true;
+    can = true;
+  }
+  elPrompt.classList.toggle('show', show);
+  btnInteract.classList.toggle('dim', !can);
+}
+
+function doInteractTap() {
+  if (!started) return;
+  if (nearTarget === 'sell') sellHay();
+  else if (nearTarget === 'shop') openShop();
+}
+
+function pickRate() {
+  if (state.tool === 'wheelbarrow') return 45;
+  if (state.tool === 'pitchfork') return 32;
+  if (state.tool === 'spade') return 28;
+  if (state.tool === 'toyshovel') return 18;
+  if (state.tool === 'bucket') return 22;
+  return PICK_RATE;
+}
+
+function pickHay(dt) {
+  if (nearTarget !== 'hay') return;
+  if (state.enMano >= state.capacidad) {
+    toast('Hands full — sell at the stand');
+    return;
+  }
+  if (state.pajaRestante <= 0) return;
+
+  pickAcc += pickRate() * dt;
+  let plucked = false;
+  while (pickAcc >= 1 && state.enMano < state.capacidad && state.pajaRestante > 0) {
+    pickAcc -= 1;
+    state.enMano += 1;
+    state.pajaRestante -= 1;
+    state.picksTotales += 1;
+    plucked = true;
+    if (state.mision === 0) state.mision = 1;
+    if (!state.agujaEncontrada && state.picksTotales >= state.agujaAt) {
+      state.agujaEncontrada = true;
+      state.mision = 4;
+      needleFx.classList.add('open');
+      try { navigator.vibrate?.(80); } catch (_) {}
+    }
+  }
+  if (plucked) burstPick();
+  if (state.enMano >= state.capacidad) pickAcc = 0;
+  rebuildHaystack();
+  updateHUD();
+  save();
+}
+
+function spawnSellFx() {
+  const from = camera.position.clone().add(new THREE.Vector3(0.02, -0.25, -0.5));
+  const to = sellGroup.position.clone().add(new THREE.Vector3(0, 1.2, 1.4));
+  for (const fx of sellFx) {
+    if (fx.active) continue;
+    fx.active = true;
+    fx.t = 0;
+    fx.from.copy(from);
+    fx.to.copy(to);
+    fx.mesh.visible = true;
+    fx.mesh.position.copy(from);
+    break;
+  }
+}
+
+function sellHay() {
+  if (state.enMano <= 0) {
+    toast('No hay in hand');
+    return;
+  }
+  const n = state.enMano;
+  const gain = n * PRECIO;
+  state.monedas += gain;
+  state.soldTotal += n;
+  state.enMano = 0;
+  state.earnWindow.push({ t: performance.now(), v: gain });
+  if (state.mision === 1) state.mision = 2;
+  if (state.mision >= 2 && state.monedas >= GOAL) state.mision = Math.max(state.mision, 3);
+  elCoin.textContent = '+' + fmt$(gain);
+  elCoin.classList.remove('show');
+  void elCoin.offsetWidth;
+  elCoin.classList.add('show');
+  try { navigator.vibrate?.(30); } catch (_) {}
+  dropZone.material.opacity = 0.75;
+  setTimeout(() => { dropZone.material.opacity = 0.22; }, 220);
+  spawnSellFx();
+  updateHUD();
+  save();
+}
+
+function openShop() {
+  renderShop();
+  shopEl.classList.add('open');
+}
+
+const SHOP_ITEMS = [
+  { id: 'toyshovel', ico: '🧒', name: 'Toy Shovel', desc: 'A small shovel. Digs 18 strands at a time.', cost: 0.25, cap: 18 },
+  { id: 'bucket', ico: '🪣', name: 'Bucket', desc: 'Holds 600 strands of hay.', cost: 10, cap: 600 },
+  { id: 'spade', ico: '⛏️', name: 'Spade', desc: 'Digs 54 strands at a time.', cost: 12, cap: 54 },
+  { id: 'pitchfork', ico: '🔱', name: 'Pitchfork', desc: 'Lifts 62 strands at a time.', cost: 30, cap: 62 },
+  { id: 'wheelbarrow', ico: '🛒', name: 'Wheelbarrow', desc: 'Holds 2100 strands of hay.', cost: 150, cap: 2100 },
+];
+
+function renderShop() {
+  shopAvail.textContent = 'Available: ' + fmt$(state.monedas);
+  shopList.innerHTML = '';
+  for (const it of SHOP_ITEMS) {
+    const owned = !!state.owned[it.id];
+    const equipped = state.tool === it.id;
+    const row = document.createElement('div');
+    row.className = 'shop-item' + (it.id === 'wheelbarrow' ? ' hl' : '');
+    const btn = document.createElement('button');
+    if (equipped) {
+      btn.textContent = 'EQUIPPED';
+      btn.disabled = true;
+    } else if (owned) {
+      btn.textContent = 'EQUIP';
+      btn.addEventListener('click', () => {
+        state.tool = it.id;
+        syncCap();
+        if (state.mision === 2) state.mision = 3;
+        toast(it.name + ' equipped');
+        updateHUD(); save(); renderShop();
+      });
+    } else {
+      btn.textContent = fmt$(it.cost);
+      btn.disabled = state.monedas < it.cost;
+      btn.addEventListener('click', () => {
+        if (state.monedas < it.cost) { toast('Not enough money'); return; }
+        state.monedas -= it.cost;
+        state.owned[it.id] = true;
+        state.tool = it.id;
+        syncCap();
+        if (state.mision === 2) state.mision = 3;
+        toast(it.name + ' purchased!');
+        updateHUD(); save(); renderShop();
+      });
+    }
+    row.innerHTML = `<div class="ico">${it.ico}</div><div class="info"><div class="name">${it.name}</div><div class="desc">${it.desc}</div><div class="price">${fmt$(it.cost)}</div></div>`;
+    row.appendChild(btn);
+    shopList.appendChild(row);
+  }
+}
+
+function collideMove(nx, nz) {
+  const bounds = 28;
+  nx = Math.max(-bounds, Math.min(bounds, nx));
+  nz = Math.max(-28, Math.min(28, nz));
+  const dx = nx - hayCollider.x;
+  const dz = nz - hayCollider.z;
+  const d = Math.hypot(dx, dz);
+  const minR = 5.5 * pileScale() + 0.9;
+  if (d < minR && d > 0.01) {
+    nx = hayCollider.x + (dx / d) * minR;
+    nz = hayCollider.z + (dz / d) * minR;
+  }
+  for (const bp of [sellPos, shopPos]) {
+    const bx = nx - bp.x, bz = nz - bp.z;
+    const bd = Math.hypot(bx, bz);
+    if (bd < 2.4 && bd > 0.01) {
+      nx = bp.x + (bx / bd) * 2.4;
+      nz = bp.z + (bz / bd) * 2.4;
+    }
+  }
+  return [nx, nz];
+}
+
+window.addEventListener('resize', () => {
+  const w = window.innerWidth, h = window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h, false);
+});
+
+if ('ontouchstart' in window) {
+  document.getElementById('desktop-hint').style.display = 'none';
+}
+
+updateHUD();
+
+const clock = new THREE.Clock();
+
+function tick() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  requestAnimationFrame(tick);
+
+  let mx = moveInput.x;
+  let my = moveInput.y;
+  if (keys['KeyW'] || keys['ArrowUp']) my += 1;
+  if (keys['KeyS'] || keys['ArrowDown']) my -= 1;
+  if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
+  if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
+  const mlen = Math.hypot(mx, my);
+  if (mlen > 1) { mx /= mlen; my /= mlen; }
+
+  if (started && !shopEl.classList.contains('open') && !needleFx.classList.contains('open')) {
+    const forward = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
+    const right = new THREE.Vector3(Math.cos(player.yaw), 0, -Math.sin(player.yaw));
+    const wish = new THREE.Vector3();
+    wish.addScaledVector(forward, my);
+    wish.addScaledVector(right, mx);
+    if (wish.lengthSq() > 0) wish.normalize();
+
+    const spd = player.speed * (state.tool === 'wheelbarrow' ? 0.9 : 1);
+    let nx = player.pos.x + wish.x * spd * dt;
+    let nz = player.pos.z + wish.z * spd * dt;
+    [nx, nz] = collideMove(nx, nz);
+    player.pos.x = nx;
+    player.pos.z = nz;
+  }
+
+  camera.position.set(player.pos.x, player.eye, player.pos.z);
+  camera.rotation.order = 'YXZ';
+  camera.rotation.y = player.yaw;
+  camera.rotation.x = player.pitch;
+
+  updateNear();
+
+  if (started && interactHeld && nearTarget === 'hay' && !shopEl.classList.contains('open')) {
+    pickHay(dt);
+  } else {
+    pickAcc = 0;
+  }
+
+  for (const fx of sellFx) {
+    if (!fx.active) continue;
+    fx.t += dt * 2.2;
+    if (fx.t >= 1) {
+      fx.active = false;
+      fx.mesh.visible = false;
+      continue;
+    }
+    const t = fx.t;
+    fx.mesh.position.lerpVectors(fx.from, fx.to, t);
+    fx.mesh.position.y += Math.sin(t * Math.PI) * 0.9;
+    fx.mesh.rotation.z += dt * 10;
+  }
+
+  for (const b of pickBits) {
+    if (!b.active) continue;
+    b.t += dt;
+    b.vel.y -= 9 * dt;
+    b.pos.addScaledVector(b.vel, dt);
+    b.mesh.position.copy(b.pos);
+    b.mesh.rotation.x += dt * 8;
+    if (b.t >= b.life) {
+      b.active = false;
+      b.mesh.visible = false;
+    }
+  }
+
+  handGroup.position.y = -0.48 + Math.sin(performance.now() * 0.005) * 0.012;
+  if (mlen > 0.1) {
+    handGroup.position.x = 0.05 + Math.sin(performance.now() * 0.012) * 0.018;
+  } else {
+    handGroup.position.x = 0.05;
+  }
+
+  renderer.render(scene, camera);
+}
+tick();
+
+window.__PAJAR = {
+  state,
+  renderer,
+  scene,
+  camera,
+  player,
+  strawCount: VISUAL_STRAW,
+  hayHeight: HAY_HEIGHT,
+  fov: FOV,
+  started: () => started,
+  forceStart: () => { started = true; startGate.style.display = 'none'; },
+  teleport: (x, z) => { player.pos.x = x; player.pos.z = z; },
+  lookAt: (yaw, pitch) => { player.yaw = yaw; player.pitch = pitch ?? player.pitch; },
+};
+console.log('[FindTheNeedle] strawCount=', VISUAL_STRAW, 'hayHeight=', HAY_HEIGHT, 'fov=', FOV);
+</script>
+</body>
+</html>
