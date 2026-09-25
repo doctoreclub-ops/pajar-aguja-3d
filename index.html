@@ -490,6 +490,10 @@ I18N.en = {
   tree_footer_touch: "{a} of {b} levels bought  ·  tap a card to buy  ·  ✕ to close",
   cat_hint_touch: "👆 Tap to equip  ·  🔒 Locked: tap to show the tree  ·  ✕ to close",
   shop_sub_touch: "Tools. Cards for them are in the tech tree (TAB TREE button).",
+  b_start_on: "Starts on this belt · it will flow into it",
+  err_steep: "too steep for a belt",
+  err_loop: "that would make a loop",
+  b_belt_hint_touch: "Belt · $8/m · aim the end at another belt to join it (green ring)",
 };
 
 I18N.es = {
@@ -627,6 +631,10 @@ I18N.es = {
   tree_footer_touch: "{a} de {b} niveles comprados  ·  toca una carta para comprar  ·  ✕ para cerrar",
   cat_hint_touch: "👆 Toca para equipar  ·  🔒 Bloqueado: toca para ver el árbol  ·  ✕ para cerrar",
   shop_sub_touch: "Herramientas. Sus cartas están en el árbol tecnológico (botón TAB ÁRBOL).",
+  b_start_on: "Empieza en esta cinta · irá hacia ella",
+  err_steep: "demasiado empinada para una cinta",
+  err_loop: "eso haría un bucle",
+  b_belt_hint_touch: "Cinta · $8/m · apunta el final a otra cinta para unirla (aro verde)",
 };
 
 I18N.pt = {
@@ -764,6 +772,10 @@ I18N.pt = {
   tree_footer_touch: "{a} de {b} níveis comprados  ·  toque numa carta para comprar  ·  ✕ para fechar",
   cat_hint_touch: "👆 Toque para equipar  ·  🔒 Bloqueado: toque para ver a árvore  ·  ✕ para fechar",
   shop_sub_touch: "Ferramentas. As cartas delas estão na árvore tecnológica (botão TAB ÁRVORE).",
+  b_start_on: "Começa nesta esteira · vai correr para ela",
+  err_steep: "íngreme demais para uma esteira",
+  err_loop: "isso faria um circuito fechado",
+  b_belt_hint_touch: "Esteira · $8/m · aponte o fim para outra esteira para ligar (anel verde)",
 };
 
 I18N.fr = {
@@ -901,6 +913,10 @@ I18N.fr = {
   tree_footer_touch: "{a} niveaux achetés sur {b}  ·  touche une carte pour acheter  ·  ✕ pour fermer",
   cat_hint_touch: "👆 Touche pour équiper  ·  🔒 Verrouillé : touche pour voir l'arbre  ·  ✕ pour fermer",
   shop_sub_touch: "Outils. Leurs cartes sont dans l'arbre technologique (bouton TAB ARBRE).",
+  b_start_on: "Commence sur ce tapis · il ira vers lui",
+  err_steep: "trop raide pour un tapis",
+  err_loop: "ça ferait une boucle",
+  b_belt_hint_touch: "Tapis · 8 $/m · vise un autre tapis avec la fin pour les relier (anneau vert)",
 };
 
 I18N.de = {
@@ -1038,6 +1054,10 @@ I18N.de = {
   tree_footer_touch: "{a} von {b} Stufen gekauft  ·  Karte antippen zum Kaufen  ·  ✕ zum Schließen",
   cat_hint_touch: "👆 Antippen zum Ausrüsten  ·  🔒 Gesperrt: antippen, um den Baum zu zeigen  ·  ✕ zum Schließen",
   shop_sub_touch: "Werkzeuge. Die Karten dafür sind im Technologiebaum (Knopf TAB BAUM).",
+  b_start_on: "Startet an diesem Band · läuft in es hinein",
+  err_steep: "zu steil für ein Band",
+  err_loop: "das wäre eine Schleife",
+  b_belt_hint_touch: "Band · $8/m · Ende auf ein anderes Band richten zum Verbinden (grüner Ring)",
 };
 
 I18N.it = {
@@ -1175,6 +1195,10 @@ I18N.it = {
   tree_footer_touch: "{a} di {b} livelli comprati  ·  tocca una carta per comprare  ·  ✕ per chiudere",
   cat_hint_touch: "👆 Tocca per equipaggiare  ·  🔒 Bloccato: tocca per vedere l'albero  ·  ✕ per chiudere",
   shop_sub_touch: "Attrezzi. Le loro carte sono nell'albero tecnologico (pulsante TAB ALBERO).",
+  b_start_on: "Parte da questo nastro · scorrerà verso di esso",
+  err_steep: "troppo ripido per un nastro",
+  err_loop: "farebbe un anello",
+  b_belt_hint_touch: "Nastro · $8/m · punta la fine su un altro nastro per unirli (anello verde)",
 };
 
 
@@ -1931,6 +1955,13 @@ function addBelt(a, b, cost, id) { const seg = new Seg(a, b, { id }); const bl =
   for (const d of saved) if (d.type === 'belt') { const bl = addBelt(new THREE.Vector3().fromArray(d.a), new THREE.Vector3().fromArray(d.b), d.cost, d.id); byId[d.id] = bl.seg; }
   for (const d of saved) if (d.type === 'belt' && d.out) { const s = byId[d.id]; if (d.out === 'sell') s.out = 'sell'; else if (byId[d.out.id]) s.out = { seg: byId[d.out.id], t: d.out.t }; }
   for (const s of segs) { const m = /^s(\d+)$/.exec(s.id); if (m) nextId = Math.max(nextId, +m[1] + 1); }
+  // v9: old saves - a built belt whose end stops on/next to another belt (within 1.2 m) but was never joined gets joined now
+  for (const s of segs) {
+    if (s.pre || s.out) continue;
+    let best = null; for (const o of segs) { if (o === s) continue; const pr = o.project(s.b), u = Math.max(0, Math.min(1, pr.u)), t = Math.max(0.06, Math.min(o.len - 0.06, u * o.len)), q = o.at(t), d = Math.hypot(s.b.x - q.x, s.b.z - q.z);
+      if (d < 1.2 && Math.abs(q.y - s.b.y) < 0.8 && (!best || d < best.d)) best = { o, t, d }; }
+    if (best) { let k = best.o, loop = false; for (let n = 0; k && n < 60; n++) { if (k === s) { loop = true; break; } k = k.out && k.out.seg; } if (!loop) { s.out = { seg: best.o, t: best.t }; S.cnt.autoLinked = (S.cnt.autoLinked || 0) + 1; } }
+  }
   for (const d of saved) if (d.type !== 'belt' && BUILD[d.type]) builds.push(new Bld(d));
 }
 
@@ -1973,7 +2004,7 @@ setInterval(updatePower, 500); updatePower();
 const P = { pos: new THREE.Vector3(S.player.x, EYE, S.player.z), yaw: S.player.yaw, pitch: S.player.pitch, bob: 0 };
 const keys = {}; const mv = { x: 0, y: 0 };
 let started = false, lmbHeld = false, xHeld = false, sprintBtn = false, scoopT = 0, xT = 0;
-let buildType = null, beltStart = null, beltFrom = null, placeD = 4.5, placeRot = 0;
+let buildType = null, beltStart = null, beltFrom = null, beltInto = null, placeD = 4.5, placeRot = 0;
 const ray = new THREE.Raycaster();
 const fwd = () => new THREE.Vector3(-Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), -Math.cos(P.yaw) * Math.cos(P.pitch));
 const fwdXZ = () => new THREE.Vector3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw));
@@ -2226,13 +2257,13 @@ function onQ() { if (!started || anyPanel()) return; if (buildType) { cancelBuil
 
 // ================== BUILD MODE ==================
 let ghost = null, ghostBelt = null, ghostValid = false, ghostInfo = null;
-function clearGhost() { if (ghost) { scene.remove(ghost); ghost = null; } if (ghostBelt) { scene.remove(ghostBelt); ghostBelt = null; } }
+function clearGhost() { if (ghost) { scene.remove(ghost); ghost = null; } if (ghostBelt) { scene.remove(ghostBelt); ghostBelt = null; } if (typeof showSnap === 'function') showSnap(null); }
 function equipBuild(type) {
-  closePanel("cat"); cancelBuild(); buildType = type; beltStart = null; beltFrom = null; placeRot = P.yaw + Math.PI; placeD = 4.5;
+  closePanel("cat"); cancelBuild(); buildType = type; beltStart = null; beltFrom = null; beltInto = null; placeRot = P.yaw + Math.PI; placeD = 4.5;
   if (type !== 'belt') { const { g } = makeModel(type); g.traverse(o => { if (o.isMesh) { o.material = ghostOK; o.castShadow = false; } }); ghost = g; scene.add(g); }
   inc('equipBuild'); showTouchBuild(true);
 }
-function cancelBuild() { buildType = null; beltStart = null; beltFrom = null; clearGhost(); $('blabel').textContent = ''; showTouchBuild(false); }
+function cancelBuild() { buildType = null; beltStart = null; beltFrom = null; beltInto = null; clearGhost(); $('blabel').textContent = ''; showTouchBuild(false); }
 function ghostPos() { const f = fwdXZ(); return new THREE.Vector3(P.pos.x + f.x * placeD, 0, P.pos.z + f.z * placeD); }
 const snapG = v => Math.round(v * 2) / 2;
 function insideYard(p, m = 0.8) { return Math.abs(p.x) < WX - m && Math.abs(p.z) < WZ - m; }
@@ -2247,36 +2278,77 @@ function beltEndInfo(p, exclude) {
   }
   return best;
 }
+const SNAP_R = IS_TOUCH ? 2.4 : 1.9;
+function beltLeadsTo(s, target) { for (let k = 0; s && k < 60; k++) { if (s === target) return true; s = s.out && s.out.seg; } return false; }
+// closest point of any belt to p (horizontal), within SNAP_R; t clamped a little inside the belt; y = that belt's surface
+function beltSnap(p, ...exclude) {
+  let best = null;
+  for (const s of segs) {
+    if (exclude.includes(s)) continue;
+    const pr = s.project(p), u = Math.max(0, Math.min(1, pr.u)), t = Math.max(0.06, Math.min(s.len - 0.06, u * s.len)), q = s.at(t), dist = Math.hypot(p.x - q.x, p.z - q.z);
+    if (dist < SNAP_R && (!best || dist < best.dist)) best = { seg: s, t, p: q, dist };
+  }
+  return best;
+}
+// green highlight on the target belt + a bouncing marker at the merge point
+let snapHi = null; const snapMat = new THREE.MeshBasicMaterial({ color: 0x3dff52, transparent: true, opacity: 0.35, depthWrite: false }), snapMk = new THREE.Group();
+{ const m1 = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.06, 8, 28), new THREE.MeshBasicMaterial({ color: 0x3dff52 })); m1.rotation.x = Math.PI / 2; snapMk.add(m1);
+  const m2 = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.36, 12), new THREE.MeshBasicMaterial({ color: 0x3dff52 })); m2.rotation.x = Math.PI; m2.position.y = 0.55; snapMk.add(m2); snapMk.visible = false; scene.add(snapMk); }
+function showSnap(j) {
+  if (snapHi) { scene.remove(snapHi); snapHi = null; }
+  snapMk.visible = !!j; if (!j) return;
+  const s = j.seg, d = new THREE.Vector3().subVectors(s.b, s.a);
+  snapHi = new THREE.Mesh(new THREE.BoxGeometry(BELT_W + 0.3, 0.12, s.len), snapMat); snapHi.rotation.order = 'YXZ'; snapHi.rotation.y = Math.atan2(d.x, d.z); snapHi.rotation.x = -Math.atan2(d.y, s.hlen);
+  snapHi.position.copy(s.a).addScaledVector(d, 0.5); snapHi.position.y += 0.04; scene.add(snapHi);
+  snapMk.position.set(j.p.x, j.p.y + 0.12 + Math.abs(Math.sin(performance.now() / 180)) * 0.15, j.p.z);
+}
 function updateGhost() {
   if (!buildType) return;
   const def = BUILD[buildType];
   let gp = ghostPos(); gp.x = snapG(gp.x); gp.z = snapG(gp.z);
   if (buildType === 'belt') {
-    let a, b, join = null, from = null;
+    // v9: magnetic belt snapping. Aim at a belt with the crosshair (or bring the ghost within SNAP_R of it):
+    //  - END near any belt (main or built, side, start or tail) -> joins it at that point (height auto-matched)
+    //  - START near a free belt END -> continues that belt;  START on a belt SIDE with a free end -> auto-reversed so it flows INTO that belt
+    // while placing the END, looking straight at another belt picks the merge point (never the belt we are extending)
+    if (beltStart && aim.kind === 'belt' && aim.d < 16 && aim.p && !(beltFrom && beltLeadsTo(aim.seg, beltFrom)) && !(beltInto && aim.seg === beltInto.seg)) gp.set(aim.p.x, 0, aim.p.z);
+    let a, b, join = null, from = null, into = null;
     if (!beltStart) {
-      for (const s of segs) if (!s.out && d2(s.b, gp) < 1.4) { from = s; break; }
-      a = from ? from.b.clone() : new THREE.Vector3(gp.x, BELT_H, gp.z); b = a.clone().add(fwdXZ().multiplyScalar(1.0)); b.y = a.y;
+      let bd = 1.6; for (const s of segs) if (!s.out && d2(s.b, gp) < bd) { bd = d2(s.b, gp); from = s; }
+      if (!from) into = beltSnap(gp, null);
+      a = from ? from.b.clone() : into ? into.p.clone() : new THREE.Vector3(gp.x, BELT_H, gp.z);
+      b = a.clone().add(fwdXZ().multiplyScalar(1.0)); b.y = a.y;
     } else {
-      a = beltStart.clone(); from = beltFrom;
-      join = beltEndInfo(gp, from);
-      b = join ? join.seg.at(join.t) : new THREE.Vector3(gp.x, a.y, gp.z);
+      a = beltStart.clone(); from = beltFrom; into = beltInto;
+      join = beltSnap(gp, from, into && into.seg);
+      b = join ? join.p.clone() : new THREE.Vector3(gp.x, into ? BELT_H : a.y, gp.z);
     }
-    const len = a.distanceTo(b), cost = Math.round((5 + 8 * len) * 100) / 100;
-    let ok = len >= (beltStart ? 0.8 : 0) && len <= 30 && insideYard(a) && insideYard(b) && Math.abs(b.y - a.y) / Math.max(0.1, len) < 0.5;
-    let reason = '';
-    for (let i = 0; i <= 10 && ok; i++) { const p = a.clone().lerp(b, i / 10); if (Math.hypot(p.x - HC.x, p.z - HC.z) < pileRAt(p.y) + 0.2) { ok = false; reason = t('err_pile'); } if (nearStand(p) && i < 10) { ok = false; reason = t('err_stand'); } }
-    if (beltStart && join && join.seg === from) { ok = false; reason = t('err_joined'); }
+    const rev = !!(beltStart && into && !join);            // started on a belt side, free end -> flow towards the belt
+    const A = rev ? b : a, B = rev ? a : b;                 // A -> B is the travel direction
+    const len = A.distanceTo(B), cost = Math.round((5 + 8 * len) * 100) / 100;
+    let ok = !beltStart || (len >= 0.8 && len <= 30), reason = '';
+    if (!insideYard(A, 0.5) || !insideYard(B, 0.5)) { ok = false; reason = t('err_cant'); }
+    if (beltStart && Math.abs(B.y - A.y) / Math.max(0.1, Math.hypot(B.x - A.x, B.z - A.z)) > 0.62) { ok = false; reason = t('err_steep'); }
+    const target = rev ? into : join;
+    for (let i = 0; i <= 12 && ok && beltStart; i++) {
+      const p = A.clone().lerp(B, i / 12);
+      if (Math.hypot(p.x - HC.x, p.z - HC.z) < pileRAt(p.y) + 0.2) { ok = false; reason = t('err_pile'); }
+      if (nearStand(p) && !(target && d2(p, target.p) < 2.2) && !(i === 0 && from)) { ok = false; reason = t('err_stand'); }
+    }
+    if (beltStart && join && from && join.seg === from) { ok = false; reason = t('err_joined'); }
+    if (beltStart && join && from && beltLeadsTo(join.seg, from)) { ok = false; reason = t('err_loop'); }
     if (beltStart && S.money < cost) { ok = false; reason = t('err_money'); }
-    ghostValid = ok; ghostInfo = { a, b, join, from, cost, len };
+    ghostValid = ok; ghostInfo = { a: A, b: B, join: target, from: rev ? null : from, cost, len, rev, into: beltStart ? null : into };
     if (ghostBelt) scene.remove(ghostBelt);
-    const L = Math.max(0.3, len), d = new THREE.Vector3().subVectors(b, a);
-    ghostBelt = new THREE.Group(); ghostBelt.position.copy(a); ghostBelt.rotation.order = 'YXZ'; ghostBelt.rotation.y = Math.atan2(d.x, d.z); ghostBelt.rotation.x = -Math.atan2(d.y, Math.hypot(d.x, d.z));
+    const L = Math.max(0.3, len), d = new THREE.Vector3().subVectors(B, A);
+    ghostBelt = new THREE.Group(); ghostBelt.position.copy(A); ghostBelt.rotation.order = 'YXZ'; ghostBelt.rotation.y = Math.atan2(d.x, d.z); ghostBelt.rotation.x = -Math.atan2(d.y, Math.hypot(d.x, d.z));
     const gm = new THREE.Mesh(new THREE.BoxGeometry(BELT_W + 0.14, 0.3, L), ok ? ghostOK : ghostBad); gm.position.set(0, -0.08, L / 2); ghostBelt.add(gm);
     const ct = chevTexBase.clone(); ct.needsUpdate = true; ct.repeat.set(1, L / 1.1);
     const cm = new THREE.Mesh(new THREE.PlaneGeometry(BELT_W * 0.9, L), new THREE.MeshBasicMaterial({ map: ct, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })); cm.rotation.x = -Math.PI / 2; cm.position.set(0, 0.08, L / 2); ghostBelt.add(cm);
     scene.add(ghostBelt);
+    showSnap(beltStart ? target : (into || (from ? { seg: from, p: from.b } : null)));
     const lab = $('blabel'); lab.className = ok ? '' : 'bad';
-    lab.textContent = beltStart ? (ok ? t('b_len', { l: len.toFixed(1), c: fmt$(cost) }) + (join ? '   ' + t('b_joins') : '') : reason || t('err_cant')) : (from ? t('b_continue') : t('b_belt_hint'));
+    lab.textContent = beltStart ? (ok ? t('b_len', { l: len.toFixed(1), c: fmt$(cost) }) + (target ? '   ' + t('b_joins') : '') : reason || t('err_cant')) : (from ? t('b_continue') : into ? t('b_start_on') : t('b_belt_hint'));
   } else {
     if (def.onBelt) { const j = beltEndInfo(gp, null) || (() => { let best = null; for (const s of segs) { const pr = s.project(gp); if (pr.lat < 1.5 && pr.u >= 0 && pr.u <= 1 && (!best || pr.lat < best.lat)) best = { seg: s, t: pr.t, lat: pr.lat }; } return best; })(); if (j) { const p = j.seg.at(j.t); gp.set(p.x, 0, p.z); placeRot = Math.atan2(j.seg.dir.x, j.seg.dir.z) + Math.PI / 2; ghostInfo = { belt: j }; } else ghostInfo = { belt: null }; }
     ghost.position.copy(gp); ghost.rotation.y = placeRot;
@@ -2295,14 +2367,14 @@ function placeBuild() {
   if (!buildType) return;
   updateGhost();
   if (buildType === 'belt') {
-    if (!beltStart) { beltStart = ghostInfo.a.clone(); beltFrom = ghostInfo.from; beep(600, 0.04, 0.03); return; }
+    if (!beltStart) { if (!ghostValid) { beep(160, 0.12, 0.05); return; } beltStart = ghostInfo.a.clone(); beltFrom = ghostInfo.from; beltInto = ghostInfo.into || null; beep(600, 0.04, 0.03); return; }
     if (!ghostValid) { beep(160, 0.12, 0.05); return; }
-    const { a, b, join, from, cost } = ghostInfo;
-    const bl = addBelt(a, b, cost); S.money -= cost; inc('belts');
+    const { a, b, join, from, cost, rev } = ghostInfo;
+    const bl = addBelt(a, b, cost); S.money -= cost; inc('belts'); if (join) inc('beltJoins');
     if (from) from.out = { seg: bl.seg, t: 0 };
     if (join) bl.seg.out = { seg: join.seg, t: join.t };
-    // continue the run from the new end
-    beltStart = b.clone(); beltFrom = join ? null : bl.seg; if (join) { beltStart = null; }
+    // continue the run from the new end (a reversed belt or a joined belt ends the run)
+    if (join || rev) { beltStart = null; beltFrom = null; beltInto = null; } else { beltStart = b.clone(); beltFrom = bl.seg; beltInto = null; }
     beep(700, 0.05, 0.04); save(); return;
   }
   if (!ghostValid) { beep(160, 0.12, 0.05); return; }
