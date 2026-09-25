@@ -3,1663 +3,1471 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
-<title>Find The Needle Demo V23 — Web Prototype</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='24' font-size='24'%3E%F0%9F%8D%BE%3C/text%3E%3C/svg%3E" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Find The Needle Demo V19 — Web Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@500;600;700&display=swap" rel="stylesheet" />
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    width: 100%; height: 100%; overflow: hidden;
-    background: #87b8e8; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    touch-action: none; user-select: none; -webkit-user-select: none;
-  }
-  #c { display: block; width: 100%; height: 100%; position: fixed; inset: 0; }
-  #hud {
-    position: fixed; inset: 0; pointer-events: none; z-index: 10;
-    color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.65);
-  }
-  #demo-title {
-    position: absolute; top: max(6px, env(safe-area-inset-top)); left: 50%;
-    transform: translateX(-50%); text-align: center; line-height: 1.25;
-  }
-  #demo-title .t { font-size: 12px; font-weight: 600; opacity: .85; letter-spacing: .02em; }
-  #demo-title .sub { font-size: 10px; opacity: .45; margin-top: 2px; }
-  #mission {
-    position: absolute; top: max(36px, calc(env(safe-area-inset-top) + 28px)); left: 10px;
-    background: rgba(0,0,0,.72); border-radius: 4px; padding: 10px 12px;
-    max-width: min(280px, 52vw); border: 1px solid rgba(255,255,255,.06);
-  }
-  #mission .step {
-    color: #f0d060; font-size: 11px; font-weight: 800; margin-bottom: 4px;
-    letter-spacing: .04em; text-transform: uppercase;
-  }
-  #mission .txt { font-size: 15px; line-height: 1.25; font-weight: 700; }
-  #mission .hint { font-size: 12px; opacity: .78; margin-top: 6px; line-height: 1.35; font-weight: 500; }
-  #mission .prog {
-    margin-top: 8px; font-size: 12px; color: #f0d060; font-weight: 700;
-  }
-  #mission .bar {
-    margin-top: 5px; height: 4px; background: rgba(255,255,255,.12); border-radius: 2px; overflow: hidden;
-  }
-  #mission .bar > i {
-    display: block; height: 100%; width: 0%; background: #f0d060; border-radius: 2px;
-  }
-  #money {
-    position: absolute; top: max(8px, env(safe-area-inset-top)); right: 14px;
-    font-size: 36px; font-weight: 900; color: #2ee86a; letter-spacing: -0.02em;
-    text-shadow: 0 0 18px rgba(46,232,106,.4), 0 2px 6px rgba(0,0,0,.55);
-  }
-  #hay-left {
-    position: absolute; top: max(48px, calc(env(safe-area-inset-top) + 40px)); right: 14px;
-    font-size: 14px; font-weight: 700; color: #ffe89a; text-align: right;
-  }
-  #rate {
-    position: absolute; top: max(68px, calc(env(safe-area-inset-top) + 60px)); right: 14px;
-    font-size: 12px; font-weight: 600; color: rgba(255,255,255,.7); text-align: right;
-  }
-  #crosshair {
-    position: absolute; left: 50%; top: 50%; width: 6px; height: 6px;
-    margin: -3px 0 0 -3px; border-radius: 50%;
-    background: rgba(255,255,255,.92); box-shadow: 0 0 0 1px rgba(0,0,0,.35);
-  }
-  #prompt {
-    position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
-    display: flex; flex-direction: column; align-items: center; gap: 5px;
-    opacity: 0; transition: opacity .12s; pointer-events: none;
-  }
-  #prompt.show { opacity: 1; }
-  #prompt .card {
-    display: flex; align-items: center; gap: 10px;
-    background: rgba(255,255,255,.94); color: #111;
-    padding: 8px 14px 8px 8px; border-radius: 8px;
-    box-shadow: 0 4px 22px rgba(0,0,0,.3);
-    border: 2px solid rgba(220,50,40,.9);
-  }
-  #prompt .key {
-    min-width: 42px; height: 42px; border-radius: 6px;
-    background: #1a1a1a; color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 800; letter-spacing: .02em;
-  }
-  #prompt .key.mouse {
-    background: #fff; color: #111; border: 2px solid #222;
-    font-size: 20px;
-  }
-  #prompt .key.mouse .rb { color: #e03020; }
-  #prompt .pinfo { text-align: left; }
-  #prompt .ptop {
-    font-size: 10px; font-weight: 800; letter-spacing: .14em; opacity: .55;
-    text-transform: uppercase;
-  }
-  #prompt .plab { font-size: 15px; font-weight: 800; line-height: 1.15; }
-  #prompt .psub { font-size: 11px; opacity: .6; margin-top: 1px; }
-  #toast {
-    position: absolute; left: 50%; top: 22%; transform: translateX(-50%);
-    background: rgba(0,0,0,.82); border-radius: 8px; padding: 10px 16px;
-    font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none;
-    border: 1px solid rgba(255,200,100,.3);
-  }
-  #toast.show { opacity: 1; }
-  #coin-pop {
-    position: absolute; left: 50%; top: 36%; transform: translate(-50%,0);
-    color: #2ee86a; font-size: 32px; font-weight: 900; opacity: 0;
-    pointer-events: none; text-shadow: 0 0 14px rgba(46,232,106,.5);
-  }
-  #coin-pop.show { animation: coinUp .9s ease-out forwards; }
-  @keyframes coinUp {
-    0% { opacity: 1; transform: translate(-50%,0) scale(1); }
-    100% { opacity: 0; transform: translate(-50%,-70px) scale(1.2); }
-  }
-  #hotbar {
-    position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom));
-    transform: translateX(-50%);
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-  }
-  #hotbar .slots {
-    display: flex; gap: 6px; background: rgba(0,0,0,.55);
-    padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,.1);
-  }
-  #hotbar .slot {
-    width: 56px; height: 56px; border-radius: 6px;
-    background: rgba(20,22,28,.85); border: 2px solid rgba(255,255,255,.18);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    position: relative; color: #ddd; font-size: 10px; font-weight: 700;
-  }
-  #hotbar .slot.active {
-    border-color: #3de0a0; box-shadow: 0 0 12px rgba(61,224,160,.45);
-  }
-  #hotbar .slot .n {
-    position: absolute; top: 2px; left: 5px; font-size: 10px; opacity: .7;
-  }
-  #hotbar .slot .ico { font-size: 22px; line-height: 1; margin-top: 4px; }
-  #hotbar .slot.active .ico { filter: drop-shadow(0 0 6px #3de0a0); }
-  #hotbar .slot .lab { font-size: 9px; letter-spacing: .04em; opacity: .75; margin-top: 2px; }
-  #hotbar .hints {
-    font-size: 11px; opacity: .55; white-space: nowrap;
-  }
-  #controls {
-    position: fixed; inset: 0; z-index: 20; pointer-events: none;
-  }
-  #joy-zone {
-    position: absolute; left: 0; bottom: 0; width: 46%; height: 42%;
-    pointer-events: auto;
-  }
-  #joy-base {
-    position: absolute; left: 24px; bottom: max(88px, calc(env(safe-area-inset-bottom) + 70px));
-    width: 108px; height: 108px; border-radius: 50%;
-    background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.22);
-    touch-action: none;
-  }
-  #joy-knob {
-    position: absolute; left: 50%; top: 50%; width: 46px; height: 46px;
-    margin: -23px 0 0 -23px; border-radius: 50%;
-    background: rgba(255,255,255,.42); border: 2px solid rgba(255,255,255,.55);
-    box-shadow: 0 2px 8px rgba(0,0,0,.3);
-  }
-  #look-zone {
-    position: absolute; right: 0; top: 0; width: 54%; height: 100%;
-    pointer-events: auto;
-  }
-  #btn-interact {
-    position: absolute; right: 20px; bottom: max(88px, calc(env(safe-area-inset-bottom) + 70px));
-    width: 76px; height: 76px; border-radius: 50%;
-    background: rgba(245, 170, 35, .9); border: 3px solid rgba(255,230,150,.92);
-    color: #2a1600; font-weight: 800; font-size: 12px; line-height: 1.1;
-    pointer-events: auto; box-shadow: 0 4px 16px rgba(0,0,0,.35);
-    display: flex; align-items: center; justify-content: center; text-align: center;
-    touch-action: none; cursor: pointer;
-  }
-  #btn-interact:active, #btn-interact.held {
-    background: rgba(255, 200, 55, 1); transform: scale(.94);
-  }
-  #btn-interact.dim { opacity: .42; }
-  #desktop-hint {
-    position: absolute; bottom: max(90px, calc(env(safe-area-inset-bottom) + 78px));
-    left: 50%; transform: translateX(-50%);
-    font-size: 10px; opacity: .4; white-space: nowrap; pointer-events: none;
-  }
-  #shop {
-    position: fixed; inset: 0; z-index: 40; display: none;
-    background: rgba(0,0,0,.7); align-items: center; justify-content: center;
-    pointer-events: auto;
-  }
-  #shop.open { display: flex; }
-  #shop-panel {
-    width: min(440px, 94vw); max-height: 78vh; overflow-y: auto;
-    background: rgba(12,14,18,.94); border-radius: 10px; padding: 18px 16px 16px;
-    border: 1px solid rgba(255,200,100,.28); color: #fff;
-  }
-  #shop-panel h2 { font-size: 18px; color: #f0d060; margin-bottom: 2px; }
-  #shop-panel .sub { font-size: 12px; opacity: .65; margin-bottom: 6px; }
-  #shop-panel .avail { font-size: 13px; margin-bottom: 14px; opacity: .85; }
-  .shop-item {
-    display: flex; align-items: center; gap: 12px;
-    background: rgba(255,255,255,.05); border-radius: 8px; padding: 12px;
-    margin-bottom: 8px; border: 1px solid rgba(255,255,255,.06);
-  }
-  .shop-item.hl { border-color: rgba(240,208,96,.55); }
-  .shop-item .ico { font-size: 28px; width: 40px; text-align: center; }
-  .shop-item .info { flex: 1; min-width: 0; }
-  .shop-item .name { font-weight: 700; font-size: 14px; }
-  .shop-item .desc { font-size: 11px; opacity: .7; margin-top: 2px; }
-  .shop-item .price { font-size: 12px; color: #8f8; margin-top: 2px; }
-  .shop-item button {
-    pointer-events: auto; background: #2ee86a; color: #0a2a12; border: none;
-    border-radius: 8px; padding: 8px 12px; font-weight: 800; font-size: 13px; cursor: pointer;
-    min-width: 72px;
-  }
-  .shop-item button:disabled { background: #444; color: #999; cursor: default; }
-  #shop-close {
-    width: 100%; margin-top: 8px; padding: 12px; border: none; border-radius: 10px;
-    background: rgba(255,255,255,.1); color: #fff; font-weight: 700; font-size: 14px;
-    cursor: pointer; pointer-events: auto;
-  }
-  #start-gate {
-    position: fixed; inset: 0; z-index: 50; background: rgba(20,35,55,.92);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: #fff; text-align: center; padding: 24px; gap: 10px;
-  }
-  #start-gate h1 { font-size: 26px; color: #f0d060; }
-  #start-gate p { font-size: 14px; opacity: .85; max-width: 380px; line-height: 1.4; }
-  #start-gate button {
-    margin-top: 12px; padding: 14px 28px; font-size: 16px; font-weight: 800;
-    background: #f0a820; color: #2a1600; border: none; border-radius: 12px; cursor: pointer;
-  }
-  #needle-fx {
-    position: fixed; inset: 0; z-index: 45; display: none;
-    background: rgba(8,10,14,.82); align-items: center; justify-content: center;
-    flex-direction: column; color: #fff; text-align: center; gap: 10px;
-  }
-  #needle-fx.open { display: flex; }
-  #needle-fx .big { font-size: 64px; }
-  #needle-fx h2 { color: #f0d060; font-size: 24px; }
-  #needle-fx button {
-    margin-top: 12px; padding: 12px 24px; border: none; border-radius: 12px;
-    background: #f0a820; color: #2a1600; font-weight: 800; cursor: pointer;
-  }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#1d1610;font-family:"Barlow",system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.cond{font-family:"Barlow Condensed","DIN Condensed","Arial Narrow",system-ui,sans-serif}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:10;color:#fff}
+#title{position:absolute;top:max(4px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);text-align:center;background:rgba(10,10,12,.55);padding:3px 10px 4px;border-radius:2px}
+#title .t{font:700 14px "Barlow Condensed",sans-serif;color:#e8e6dc;letter-spacing:.02em}
+#title .s{font:500 9px "Barlow",sans-serif;color:#9a988f}
+#tip{position:absolute;top:max(44px,calc(env(safe-area-inset-top) + 40px));left:50%;transform:translateX(-50%);text-align:center;background:rgba(10,10,12,.7);padding:4px 12px 5px;border-radius:2px;opacity:0;transition:opacity .3s;max-width:70vw}
+#tip.show{opacity:1}
+#tip .h{font:800 10px "Barlow Condensed";color:#f2d45c;letter-spacing:.12em}
+#tip .b{font:500 11px "Barlow";color:#e8e6dc}
+#mission{position:absolute;top:max(10px,env(safe-area-inset-top));left:10px;width:min(300px,46vw);background:rgba(18,17,15,.86);border:1px solid rgba(214,180,90,.55);padding:9px 11px 9px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+#mission .st{font:700 10px "Barlow Condensed";color:#bdb8a8;letter-spacing:.08em}
+#mission .ti{font:700 17px "Barlow Condensed";color:#f2d45c;margin-top:2px;padding-right:44px;line-height:1.1}
+#mission .bd{font:500 11.5px/1.32 "Barlow";color:#ecebe4;margin-top:4px}
+#mission .bd b{color:#f2d45c;font-weight:700}
+#mission .kb{position:absolute;right:10px;top:22px;background:#f1f0ea;color:#111;font:800 11px "Barlow Condensed";padding:3px 7px;border-radius:2px;display:none}
+#mission .bar{height:4px;background:rgba(255,255,255,.14);margin-top:7px;display:none}
+#mission .bar i{display:block;height:100%;width:0;background:#f2d45c}
+#mission .pr{font:700 11px "Barlow Condensed";color:#f2d45c;margin-top:4px;display:none;letter-spacing:.02em}
+#mission.done .ti{color:#8fe36a}
+#money{position:absolute;top:max(4px,env(safe-area-inset-top));right:14px;font:700 40px/1 "Barlow Condensed";color:#eef5c0;text-shadow:0 2px 4px rgba(0,0,0,.7),0 0 1px #000}
+#hayleft{position:absolute;top:max(46px,calc(env(safe-area-inset-top) + 42px));right:14px;font:700 14px "Barlow Condensed";color:#e6cf98;text-shadow:0 1px 3px rgba(0,0,0,.8);letter-spacing:.02em}
+#rate{position:absolute;top:max(64px,calc(env(safe-area-inset-top) + 60px));right:14px;font:700 13px "Barlow Condensed";color:#dfe6c4;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+#contract{position:absolute;top:max(86px,calc(env(safe-area-inset-top) + 82px));right:14px;width:150px;background:#f3efe4;color:#222;padding:6px 8px;display:none;font-family:"Barlow Condensed"}
+#pop{position:absolute;left:44%;top:max(34px,calc(env(safe-area-inset-top) + 30px));font:700 26px "Barlow Condensed";color:#f2d45c;text-shadow:0 2px 3px rgba(0,0,0,.7);opacity:0}
+#pop.show{animation:popUp 1.1s ease-out forwards}
+@keyframes popUp{0%{opacity:1;transform:translateY(8px)}15%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-22px)}}
+#cross{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border:1.5px solid rgba(255,255,255,.9);border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+#load{position:absolute;left:50%;top:58%;transform:translateX(-50%);font:700 20px "Barlow Condensed";color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);opacity:0}
+#blabel{position:absolute;left:50%;top:calc(50% + 14px);transform:translateX(-50%);font:700 12px "Barlow Condensed";color:#7dff7a;text-shadow:0 1px 2px #000;white-space:nowrap}
+#blabel.bad{color:#ff4a3a}
+#hold{position:absolute;left:50%;top:calc(50% + 30px);width:60px;height:4px;margin-left:-30px;background:rgba(0,0,0,.5);display:none}
+#hold i{display:block;height:100%;width:0;background:#ff5a3a}
+#bottom{position:absolute;left:50%;bottom:max(6px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px}
+#slots{display:flex;gap:3px}
+.slot{width:40px;height:40px;background:rgba(22,22,22,.82);border:1px solid rgba(255,255,255,.12);position:relative;display:flex;align-items:center;justify-content:center;pointer-events:auto;cursor:pointer}
+.slot.on{border:2px solid #e9c64a;background:rgba(40,36,22,.9)}
+.slot .n{position:absolute;top:1px;left:0;right:0;text-align:center;font:700 8px "Barlow Condensed";color:#bbb}
+.slot .ic{font-size:18px;margin-top:6px}
+.slot .tx{font:700 9px "Barlow Condensed";color:#ddd;margin-top:8px;letter-spacing:.04em}
+#prompts{display:flex;gap:14px;font:600 11px "Barlow";color:#e8e6dc;text-shadow:0 1px 2px #000;white-space:nowrap}
+#prompts .k{display:inline-block;background:#f1f0ea;color:#111;font:800 9px "Barlow Condensed";padding:1px 4px;border-radius:2px;margin-right:4px}
+#stam{position:absolute;left:12px;bottom:max(14px,calc(env(safe-area-inset-bottom) + 8px));width:130px;height:5px;background:rgba(0,0,0,.45)}
+#stam i{display:block;height:100%;width:100%;background:#e9c64a}
+#det{position:absolute;left:50%;top:64%;transform:translateX(-50%);font:700 13px "Barlow Condensed";color:#8fe36a;text-shadow:0 1px 2px #000;display:none}
+/* touch controls */
+#touch{position:fixed;inset:0;z-index:20;pointer-events:none;display:none}
+body.touch #touch{display:block}
+#joyz{position:absolute;left:0;bottom:0;width:45%;height:55%;pointer-events:auto}
+#joyb{position:absolute;left:26px;bottom:max(96px,calc(env(safe-area-inset-bottom) + 90px));width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.22)}
+#joyk{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(255,255,255,.35);border:2px solid rgba(255,255,255,.5)}
+#lookz{position:absolute;right:0;top:0;width:55%;height:100%;pointer-events:auto}
+.tb{position:absolute;pointer-events:auto;border-radius:50%;background:rgba(20,20,20,.62);border:2px solid rgba(233,198,74,.8);color:#f2d45c;font:800 11px/1.05 "Barlow Condensed";display:flex;align-items:center;justify-content:center;text-align:center;touch-action:none}
+.tb.held{background:rgba(233,198,74,.85);color:#111}
+.tb.hide{display:none}
+#tb-lmb{right:22px;bottom:max(100px,calc(env(safe-area-inset-bottom) + 94px));width:78px;height:78px;font-size:14px}
+#tb-rmb{right:108px;bottom:max(92px,calc(env(safe-area-inset-bottom) + 86px));width:58px;height:58px}
+#tb-e{right:30px;bottom:max(188px,calc(env(safe-area-inset-bottom) + 182px));width:56px;height:56px}
+#tb-f{right:100px;bottom:max(160px,calc(env(safe-area-inset-bottom) + 154px));width:50px;height:50px}
+#tb-tab{right:14px;top:max(96px,calc(env(safe-area-inset-top) + 92px));width:50px;height:50px;border-radius:6px}
+#tb-x{right:112px;bottom:max(222px,calc(env(safe-area-inset-bottom) + 216px));width:48px;height:48px;border-color:#ff6b4a;color:#ff8a6a}
+#tb-r{right:160px;bottom:max(150px,calc(env(safe-area-inset-bottom) + 144px));width:46px;height:46px}
+#tb-sp{left:150px;bottom:max(60px,calc(env(safe-area-inset-bottom) + 54px));width:46px;height:46px}
+#tb-near{right:170px;bottom:max(96px,calc(env(safe-area-inset-bottom) + 90px));width:44px;height:44px}
+#tb-far{right:170px;bottom:max(200px,calc(env(safe-area-inset-bottom) + 194px));width:44px;height:44px}
+/* panels */
+.panel{position:fixed;inset:0;z-index:40;display:none;background:rgba(6,6,8,.9);color:#e8e6dc;pointer-events:auto}
+.panel.open{display:flex}
+#tree{flex-direction:column}
+#tree .hd{display:flex;align-items:center;gap:14px;padding:max(10px,env(safe-area-inset-top)) 16px 8px;border-bottom:1px solid #2a2a2a}
+#tree .hd h1{font:800 28px "Barlow Condensed";color:#f2d45c;letter-spacing:.02em}
+#tree .hd input{background:#16171a;border:1px solid #2b2c30;color:#ddd;padding:6px 10px;font:500 12px "Barlow";width:min(240px,35vw);pointer-events:auto}
+#tree .hd .m{margin-left:auto;font:700 24px "Barlow Condensed";color:#eef5c0}
+#tree .hd .x,.cat .x,#shop .x{background:#26272b;border:1px solid #3a3b40;color:#ddd;font:700 13px "Barlow Condensed";padding:6px 12px;cursor:pointer}
+#tree .bd{flex:1;display:flex;min-height:0}
+#tree .cats{width:150px;border-right:1px solid #222;padding:8px 0;overflow-y:auto}
+#tree .cats div{padding:6px 12px;font:700 12px "Barlow Condensed";color:#9a9890;letter-spacing:.05em;cursor:pointer;display:flex;justify-content:space-between}
+#tree .cats div.on{color:#e8a040;background:rgba(232,160,64,.08)}
+#tree .cats div span{color:#8fe36a;font-weight:600}
+#tree .cards{flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;align-content:start}
+.card{background:#141517;border:1px solid #2d2e31;padding:9px 10px;cursor:pointer;min-height:92px;position:relative}
+.card.ready{border-color:#e0c060}
+.card.own{border-color:#55503a;background:#1a1914}
+.card.lock{opacity:.5}
+.card .cg{font:700 9px "Barlow Condensed";color:#b9c74a;letter-spacing:.08em}
+.card .nm{font:700 15px "Barlow Condensed";color:#f0efe8;margin-top:1px}
+.card .ds{font:500 10.5px/1.3 "Barlow";color:#a09e96;margin-top:3px}
+.card .pc{font:700 13px "Barlow Condensed";color:#8fe36a;margin-top:5px;display:flex;justify-content:space-between}
+.card .pc .lv{color:#888}
+.card.own .pc{color:#d9c270}
+.card.lock .pc{color:#888}
+#tree .ft{padding:6px 16px max(8px,env(safe-area-inset-bottom));font:500 11px "Barlow";color:#8a8880;border-top:1px solid #222}
+.cat{align-items:center;justify-content:center;background:rgba(0,0,0,.35)!important}
+.cat .box{width:min(760px,96vw);max-height:88vh;background:rgba(16,17,19,.97);border:1px solid #6b5a2a;display:flex;flex-direction:column}
+.cat .top{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 12px 6px;position:relative}
+.cat .top h2{font:800 26px "Barlow Condensed";color:#f2d45c}
+.cat .top .x{position:absolute;right:10px;top:10px}
+.cat .hints{text-align:center;font:500 11px "Barlow";color:#aaa;padding-bottom:8px;border-bottom:1px solid #26272a}
+.cat .in{display:flex;min-height:0;flex:1}
+.cat .tabs{width:130px;padding:8px 0;overflow-y:auto}
+.cat .tabs div{padding:7px 12px;font:700 13px "Barlow Condensed";color:#ccc;cursor:pointer}
+.cat .tabs div.on{color:#f2d45c}
+.cat .grid{flex:1;overflow-y:auto;padding:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;align-content:start}
+.bi{background:#141416;border:1px solid #2a2b2e;padding:8px;text-align:center;cursor:pointer;position:relative;min-height:100px}
+.bi:hover,.bi.sel{border-color:#d9c270}
+.bi .ico{font-size:30px;height:42px;display:flex;align-items:center;justify-content:center;filter:grayscale(.2)}
+.bi .nm{font:700 13px "Barlow Condensed";color:#f0efe8}
+.bi .pc{font:700 12px "Barlow Condensed";color:#f2d45c}
+.bi.lock .nm,.bi.lock .pc{color:#777}
+.bi.lock .ico{opacity:.35}
+.bi .lk{position:absolute;right:6px;top:4px;font-size:12px;opacity:.7}
+.bi .ky{position:absolute;left:6px;top:4px;font:700 9px "Barlow Condensed";color:#f2d45c}
+#shop{align-items:center;justify-content:center}
+#shop .box{width:min(460px,95vw);max-height:86vh;overflow-y:auto;background:#17140f;border:1px solid #7a6330;padding:14px}
+#shop h2{font:800 26px "Barlow Condensed";color:#f2d45c}
+#shop .sb{font:500 12px "Barlow";color:#aaa;margin-bottom:10px}
+.si{display:flex;align-items:center;gap:10px;background:#211d16;border:1px solid #3a3222;padding:9px;margin-bottom:7px}
+.si .ico{font-size:26px;width:36px;text-align:center}
+.si .inf{flex:1}
+.si .nm{font:700 15px "Barlow Condensed"}
+.si .ds{font:500 11px "Barlow";color:#aaa}
+.si button{background:#e9c64a;color:#1a1400;border:none;font:800 13px "Barlow Condensed";padding:8px 10px;min-width:84px;cursor:pointer}
+.si button:disabled{background:#3b3b3b;color:#888;cursor:default}
+#rakep{align-items:center;justify-content:center;background:rgba(0,0,0,.3)!important}
+#rakep .box,#cabp .box{background:#141517;border:1px solid #6b5a2a;padding:16px;width:min(360px,92vw)}
+#rakep h3,#cabp h3{font:800 22px "Barlow Condensed";color:#f2d45c;margin-bottom:8px}
+#rakep input{width:100%;pointer-events:auto}
+#rakep .row{display:flex;justify-content:space-between;align-items:center;margin:10px 0;font:600 13px "Barlow"}
+#rakep button,#cabp button,#found button,#gate button{background:#e9c64a;color:#1a1400;border:none;font:800 14px "Barlow Condensed";padding:9px 16px;cursor:pointer;margin-top:8px}
+#cabp{align-items:center;justify-content:center}
+#cabp .dr{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
+#cabp .dr div{background:#2a1d12;border:1px solid #5a3d22;padding:8px 4px;text-align:center;font:700 11px "Barlow Condensed";color:#8a7a60;min-height:52px}
+#cabp .dr div.got{color:#f2d45c;border-color:#c9a040}
+#found{align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:8px}
+#found .big{font-size:64px}
+#found h2{font:800 34px "Barlow Condensed";color:#f2d45c}
+#gate{z-index:60;align-items:center;justify-content:center;flex-direction:column;text-align:center;gap:10px;padding:24px;background:radial-gradient(#2c2218,#0d0a07)}
+#gate h1{font:800 44px "Barlow Condensed";color:#f2d45c;letter-spacing:.02em}
+#gate p{font:500 14px/1.45 "Barlow";max-width:440px;color:#d8d4c8}
+#gate .sm{font-size:12px;color:#9a968a}
+body.touch #prompts{display:none}
+@media (max-width:640px){#title{display:none}#mission{width:min(250px,60vw);padding:7px 9px}#mission .bd{font-size:10.5px}#mission .ti{font-size:15px}#money{font-size:32px}#hayleft{top:max(38px,calc(env(safe-area-inset-top) + 34px));font-size:12px}#rate{top:max(54px,calc(env(safe-area-inset-top) + 50px));font-size:12px}.slot{width:36px;height:36px}}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div id="hud">
-  <div id="demo-title">
-    <div class="t">Find The Needle Demo V23</div>
-    <div class="sub">Bugs might exist. Please report them on Discord.</div>
-  </div>
-  <div id="mission">
-    <div class="step" id="m-step">STEP 1 OF 46</div>
-    <div class="txt" id="m-txt">Pick hay from the mountain</div>
-    <div class="hint" id="m-hint">Walk up to the hay. Hold LMB / E to pick strands.</div>
-    <div class="bar"><i id="m-bar"></i></div>
-    <div class="prog" id="m-prog">$0.00 / $1.25 · $1.25 left</div>
-  </div>
+  <div id="title"><div class="t">Find The Needle Demo V19</div><div class="s">Bugs might exist. Please report them on Discord.</div></div>
+  <div id="tip"><div class="h">TIP</div><div class="b" id="tip-b"></div></div>
+  <div id="mission"><div class="st" id="m-st">STEP 1 OF 41</div><div class="ti" id="m-ti"></div><div class="kb" id="m-kb"></div><div class="bd" id="m-bd"></div><div class="bar" id="m-bar"><i></i></div><div class="pr" id="m-pr"></div></div>
   <div id="money">$0.00</div>
-  <div id="hay-left">13,717,280 HAY LEFT</div>
+  <div id="hayleft">13,717,280 HAY LEFT</div>
   <div id="rate">$0.00/min</div>
-  <div id="crosshair"></div>
-  <div id="prompt">
-    <div class="card">
-      <div class="key" id="prompt-key">E</div>
-      <div class="pinfo">
-        <div class="ptop" id="prompt-top">HOLD</div>
-        <div class="plab" id="prompt-lab">Pick hay</div>
-        <div class="psub" id="prompt-sub"></div>
-      </div>
-    </div>
-  </div>
-  <div id="toast"></div>
-  <div id="coin-pop">+$0.05</div>
-  <div id="hotbar">
-    <div class="slots">
-      <div class="slot active" data-slot="1"><span class="n">1</span><span class="ico">🖐️</span><span class="lab">HAND</span></div>
-      <div class="slot" data-slot="2"><span class="n">B</span><span class="ico">🧱</span><span class="lab">BUILD</span></div>
-      <div class="slot" data-slot="3"><span class="n">Q</span><span class="ico">⬇️</span><span class="lab">DROP</span></div>
-    </div>
-    <div class="hints">[B] Build catalogue · [Q] Drop · [E] Interact</div>
-  </div>
+  <div id="pop">+$0.00</div>
+  <div id="cross"></div>
+  <div id="load"></div>
+  <div id="blabel"></div>
+  <div id="hold"><i></i></div>
+  <div id="det"></div>
+  <div id="stam"><i></i></div>
+  <div id="bottom"><div id="slots"></div><div id="prompts"></div></div>
 </div>
-<div id="controls">
-  <div id="joy-zone"><div id="joy-base"><div id="joy-knob"></div></div></div>
-  <div id="look-zone"></div>
-  <button type="button" id="btn-interact" class="dim">HOLD<br/>/ USE</button>
-  <div id="desktop-hint">WASD + mouse · Hold E / LMB to pick · Q drop · E shop/sell</div>
+<div id="touch">
+  <div id="joyz"><div id="joyb"><div id="joyk"></div></div></div>
+  <div id="lookz"></div>
+  <div class="tb" id="tb-lmb">LMB</div>
+  <div class="tb" id="tb-rmb">RMB<br>TIP</div>
+  <div class="tb" id="tb-e">E<br>USE</div>
+  <div class="tb" id="tb-f">F<br>THROW</div>
+  <div class="tb" id="tb-tab">TAB<br>TREE</div>
+  <div class="tb" id="tb-x">HOLD<br>X</div>
+  <div class="tb hide" id="tb-r">R<br>TURN</div>
+  <div class="tb hide" id="tb-near">C<br>−</div>
+  <div class="tb hide" id="tb-far">V<br>+</div>
+  <div class="tb" id="tb-sp">RUN</div>
 </div>
-<div id="shop">
-  <div id="shop-panel">
-    <h2>SUPPLY CO.</h2>
-    <div class="sub">Tools and containers</div>
-    <div class="avail" id="shop-avail">Available: $0.00</div>
-    <div id="shop-list"></div>
-    <button type="button" id="shop-close">Close</button>
-  </div>
+<div class="panel" id="tree">
+  <div class="hd"><h1>TECH TREE</h1><input id="tree-q" placeholder="search the tree" /><div class="m" id="tree-m">$0.00</div><button class="x" id="tree-x">CLOSE [TAB]</button></div>
+  <div class="bd"><div class="cats" id="tree-cats"></div><div class="cards" id="tree-cards"></div></div>
+  <div class="ft" id="tree-ft"></div>
 </div>
-<div id="needle-fx">
-  <div class="big">🪡</div>
-  <h2>Needle found!</h2>
-  <p>There was a needle in the haystack. Nice eye.</p>
-  <button type="button" id="needle-ok">Keep looking</button>
+<div class="panel cat" id="cat"><div class="box">
+  <div class="top"><h2>BUILD CATALOGUE</h2><button class="x" id="cat-x">CLOSE [B]</button></div>
+  <div class="hints">🖱 Equip &nbsp; · &nbsp; 🔒 Locked: click to show tree</div>
+  <div class="in"><div class="tabs" id="cat-tabs"></div><div class="grid" id="cat-grid"></div></div>
+</div></div>
+<div class="panel" id="shop"><div class="box">
+  <h2>SUPPLY CO.</h2><div class="sb">Tools. Cards for them are in the tech tree (Tab). <span id="shop-m"></span></div>
+  <div id="shop-list"></div><button class="x" id="shop-x" style="width:100%;margin-top:6px">CLOSE</button>
+</div></div>
+<div class="panel" id="rakep"><div class="box">
+  <h3>HAY PISTON RAKE</h3>
+  <div class="row"><span>Throw distance</span><b id="rake-v">4.0 m</b></div>
+  <input type="range" id="rake-s" min="1" max="8" step="0.5" value="4" />
+  <div class="row"><span>Power</span><b id="rake-pw">—</b></div>
+  <button id="rake-on">TURN OFF</button> <button id="rake-x">CLOSE</button>
+</div></div>
+<div class="panel" id="cabp"><div class="box">
+  <h3>NEEDLE CABINET</h3><div style="font:500 12px Barlow;color:#aaa">Every kind of needle has its own drawer.</div>
+  <div class="dr" id="cab-dr"></div><button id="cab-x">CLOSE</button>
+</div></div>
+<div class="panel" id="found"><div class="big">🪡</div><h2 id="found-h">NEEDLE FOUND</h2><p id="found-p" style="font:500 14px Barlow;max-width:380px"></p><button id="found-x">KEEP LOOKING</button></div>
+<div class="panel open" id="gate">
+  <h1>FIND THE NEEDLE</h1>
+  <p>You have a shovel and a haystack with about thirteen million strands in it. Somewhere inside there's a needle. Dig it out by hand, sell the hay on the belt, then spend the money on belts and machines until you don't have to dig anymore.</p>
+  <p class="sm" id="gate-ctl">WASD move · Mouse look · LMB dig · RMB tip · E use · F throw · Q put tool down · Tab tech tree · B build · Shift run</p>
+  <button id="gate-go">PLAY</button>
 </div>
-<div id="start-gate">
-  <h1>Find The Needle Demo V23</h1>
-  <p>Open dusty yard. Monumental hay mountain. Pick strands, sell at the stand, upgrade at Supply Co.</p>
-  <p style="font-size:12px;opacity:.65">Left joystick = move · Drag right = look · Hold button / E to pick</p>
-  <button type="button" id="btn-start">Enter the yard</button>
-</div>
-
 <script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-  }
-}
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 </script>
 <script type="module">
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-const SAVE_KEY = 'pajar-aguja-3d-v3';
-const PAJA_INICIAL = 13717280;
-const PRECIO = 0.05;
-const GOAL = 1.25;
-const VISUAL_STRAW = 5500;
-const PICK_RATE = 8;
-const HAY_HEIGHT = 26;
-const FOV = 95;
+// ================== CONSTANTS ==================
+const SAVE_KEY = 'pajar-aguja-3d-v4';
+const HAY0 = 13717280;
+const PRICE = 0.0222;              // "$0.0222 PER STRAND"
+const IS_TOUCH = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+const HC = new THREE.Vector3(9, 0, -3);   // haystack centre
+const PILE_R = 12.5, PILE_H = 11;
+const BELT_W = 0.9, BELT_H = 0.5, ITEM_GAP = 0.42;
+const WX = 31, WZ = 23, WALL_H = 9;       // warehouse half extents
+const NEEDLE_TYPES = ['Sewing needle','Darning needle','Medical needle','Silver needle','Knitting needle','Upholstery needle','Compass needle','Gramophone needle'];
 
-const state = {
-  monedas: 0,
-  pajaRestante: PAJA_INICIAL,
-  enMano: 0,
-  capacidad: 1,
-  tool: 'hand', // hand | toyshovel | spade | pitchfork | wheelbarrow
-  owned: { toyshovel: false, spade: false, pitchfork: false, wheelbarrow: false, bucket: false },
-  agujaEncontrada: false,
-  picksTotales: 0,
-  agujaAt: null,
-  mision: 0,
-  soldTotal: 0,
-  earnWindow: [],
+// tools: cap = strands carried, per = strands per scoop
+const TOOLS = {
+  hand:       { name:'Hand',         ico:'✋', cap:1,    per:1,   dt:0.42 },
+  toyshovel:  { name:'Toy Shovel',   ico:'🟡', cap:18,   per:18,  dt:0.55, price:0.25, desc:'A plastic beach shovel. Carries 18 strands.' },
+  bucket:     { name:'Bucket',       ico:'🪣', cap:600,  per:30,  dt:0.45, price:10, card:'bucketLic', desc:'Holds 600 strands. Fills a bit per scoop.' },
+  spade:      { name:'Spade',        ico:'♠️', cap:54,   per:54,  dt:0.55, price:12, card:'spadeCard', desc:'A proper spade. Carries 54 strands.' },
+  pitchfork:  { name:'Pitchfork',    ico:'🔱', cap:62,   per:62,  dt:0.45, price:30, card:'forkCard', desc:'Fast. Carries 62 strands.' },
+  wheelbarrow:{ name:'Wheelbarrow',  ico:'🛒', cap:2100, per:90,  dt:0.4,  price:150, card:'barrowCard', desc:'Holds 2,100 strands. Push it to the belt.' },
+  detector:   { name:'Metal Detector',ico:'📡', cap:0,   per:0,   dt:0.5,  price:260, card:'detector', desc:'Beeps faster the closer you are to a needle. RMB turns it on and off.' },
 };
+const TOOL_ORDER = ['toyshovel','bucket','spade','pitchfork','wheelbarrow','detector'];
 
+const TECH = [
+  { id:'hands', cat:'HAND WORK', name:'Bigger Hands', desc:'Your hand holds one more straw per level.', prices:[0.10,0.20,0.40] },
+  { id:'bucketLic', cat:'HAND WORK', name:'Bucket License', desc:'The shop will sell you a bucket ($10). Holds 600 strands.', prices:[10], req:['hands'] },
+  { id:'spadeCard', cat:'HAND WORK', name:'Spade', desc:'Unlocks the spade in the shop for $12. Carries 54 strands.', prices:[15], req:['hands'] },
+  { id:'forkCard', cat:'HAND WORK', name:'Pitchfork', desc:'Unlocks the pitchfork in the shop for $30.', prices:[20], req:['spadeCard'] },
+  { id:'barrowCard', cat:'HAND WORK', name:'Wheelbarrow', desc:'Unlocks the wheelbarrow in the shop for $150.', prices:[60], req:['forkCard'] },
+  { id:'reach', cat:'HAND WORK', name:'Long Arms', desc:'Grab hay from further away.', prices:[6,18] },
+  { id:'cabinet', cat:'YARD BUILDING', name:'Needle Cabinet', desc:'A cabinet with a drawer for every kind of needle. $25 to build.', prices:[10] },
+  { id:'conveyor', cat:'HAY LINES', name:'Conveyor Plans', desc:'Build conveyor belts, $8 per metre. Hay on a belt rides to where it points.', prices:[40] },
+  { id:'motor', cat:'HAY LINES', name:'Faster Belt Motor', desc:'Every belt runs faster, including the ones you already built.', prices:[15,22,33,50,75,110,165,250], req:['conveyor'], group:'BELT UPGRADES' },
+  { id:'electricity', cat:'POWER', name:'Electricity', desc:'Unlocks the Hay Generator ($150) and the Power Pole ($45). A pole reaches 6 metres.', prices:[90] },
+  { id:'rake', cat:'AUTOMATION', name:'Hay Piston Rake', desc:'Rakes the face of the haystack and throws the hay over its back. $120 to build. Needs power.', prices:[60] },
+  { id:'arm', cat:'AUTOMATION', name:'Small Arm Plans', desc:'A robot arm that digs from the haystack and puts the hay on a belt. $180 to build. Needs power.', prices:[90], req:['conveyor'] },
+  { id:'detector', cat:'PROSPECTING', name:'Metal Detector', desc:'Unlocks the detector in the shop for $260. It beeps faster the closer you are to a needle.', prices:[130] },
+  { id:'scanner', cat:'PROSPECTING', name:'Scanner MK1 Plans', desc:'Put it on a belt. Checks the hay that passes (60 strands every 4.5 s) for needles. $200 to build.', prices:[120], req:['conveyor'] },
+  { id:'sell', cat:'SELLING', name:'Hay Price', desc:'Each level makes everything sell for 5% more.', prices:[5,10,20,40,80,160] },
+  { id:'boots', cat:'FITNESS', name:'Running Boots', desc:'Walk and run faster.', prices:[5,15,40] },
+  { id:'stamina', cat:'FITNESS', name:'Lungs', desc:'Run for longer before you get tired.', prices:[4,12,30] },
+];
+const TREE_CATS = ['HAND WORK','YARD BUILDING','HAY LINES','POWER','PROCESSING','AUTOMATION','WATER','PROSPECTING','SELLING','FITNESS'];
+
+const BUILD = {
+  belt:     { name:'Conveyor Belt', ico:'🛤️', cat:'Haulage', price:8, perM:true, card:'conveyor' },
+  arm:      { name:'Robotic Arm', ico:'🦾', cat:'Excavation', price:180, card:'arm', r:0.8 },
+  rake:     { name:'Piston Rake', ico:'🧹', cat:'Excavation', price:120, card:'rake', r:1.0 },
+  generator:{ name:'Hay Generator', ico:'🔥', cat:'Power', price:150, card:'electricity', r:1.1 },
+  pole:     { name:'Power Pole', ico:'🗼', cat:'Power', price:45, card:'electricity', r:0.3 },
+  scanner:  { name:'Scanner MK1', ico:'🔍', cat:'Prospecting', price:200, card:'scanner', r:0.3, onBelt:true },
+  cabinet:  { name:'Needle Cabinet', ico:'🗄️', cat:'Structure', price:25, card:'cabinet', r:1.0 },
+  splitter: { name:'Belt Splitter', ico:'🔀', cat:'Haulage', price:120, never:true },
+  usplit:   { name:'U Splitter', ico:'⋓', cat:'Haulage', price:120, never:true },
+  tsplit:   { name:'T Splitter', ico:'⊤', cat:'Haulage', price:120, never:true },
+  drone:    { name:'Hay Drone', ico:'🛸', cat:'Haulage', price:600, never:true },
+  press:    { name:'Compressor', ico:'🗜️', cat:'Processing', price:350, never:true },
+};
+const CAT_TABS = ['Everything','Unlocked','Excavation','Haulage','Processing','Power','Water','Structure','Prospecting'];
+
+// ================== STATE ==================
+const S = {
+  money: 0, hay: HAY0, picked: 0, earnedTotal: 0,
+  tool: 'hand', slots: ['hand'], owned: {}, groundTools: [], load: 0, loadNeedle: false,
+  tech: {}, step: 0, cnt: {}, builds: [], needle: null, found: [], detOn: false,
+  stamina: 1, player: { x: -4.3, z: 4.2, yaw: -1.15, pitch: -0.08 },
+};
 function load() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return;
-    const d = JSON.parse(raw);
-    Object.assign(state, {
-      monedas: d.monedas ?? 0,
-      pajaRestante: d.pajaRestante ?? PAJA_INICIAL,
-      enMano: d.enMano ?? 0,
-      capacidad: d.capacidad ?? 1,
-      tool: d.tool ?? 'hand',
-      owned: Object.assign(state.owned, d.owned || {}),
-      agujaEncontrada: !!d.agujaEncontrada,
-      picksTotales: d.picksTotales ?? 0,
-      agujaAt: d.agujaAt ?? null,
-      mision: d.mision ?? 0,
-      soldTotal: d.soldTotal ?? 0,
-    });
-  } catch (_) {}
+  try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (d) Object.assign(S, d); } catch (_) {}
+  S.cnt = S.cnt || {}; S.tech = S.tech || {}; S.owned = S.owned || {}; S.builds = S.builds || [];
 }
+let saveT = 0;
 function save() {
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({
-      monedas: state.monedas,
-      pajaRestante: state.pajaRestante,
-      enMano: state.enMano,
-      capacidad: state.capacidad,
-      tool: state.tool,
-      owned: state.owned,
-      agujaEncontrada: state.agujaEncontrada,
-      picksTotales: state.picksTotales,
-      agujaAt: state.agujaAt,
-      mision: state.mision,
-      soldTotal: state.soldTotal,
-    }));
+    const d = Object.assign({}, S, { builds: builds.filter(b => !b.pre).map(b => b.ser()) });
+    localStorage.setItem(SAVE_KEY, JSON.stringify(d));
   } catch (_) {}
 }
 load();
-if (state.agujaAt == null) {
-  state.agujaAt = 80 + Math.floor(Math.random() * 400);
+const lvl = id => S.tech[id] || 0;
+const has = id => lvl(id) > 0;
+const sellMult = () => 1 + 0.05 * lvl('sell');
+const beltSpeed = () => 1.1 * (1 + 0.22 * lvl('motor'));
+const reach = () => 3.3 + 0.9 * lvl('reach');
+const toolCap = t => t === 'hand' ? 1 + lvl('hands') : TOOLS[t].cap;
+const inc = (k, n = 1) => { S.cnt[k] = (S.cnt[k] || 0) + n; };
+
+// ================== DOM ==================
+const $ = id => document.getElementById(id);
+const fmt$ = n => '$' + (n < 0 ? 0 : n).toFixed(2);
+const fmtN = n => Math.floor(n).toLocaleString('en-US');
+if (IS_TOUCH) { document.body.classList.add('touch'); $('gate-ctl').textContent = 'Left stick move · drag right side to look · LMB dig · RMB tip · E use · TAB tree · slots at the bottom'; }
+
+let tipT = 0;
+function tip(msg, ms = 3200) { $('tip-b').textContent = msg; $('tip').classList.add('show'); clearTimeout(tipT); tipT = setTimeout(() => $('tip').classList.remove('show'), ms); }
+let popAcc = 0, popT = 0;
+function moneyPop(v) {
+  popAcc += v; const el = $('pop'); el.textContent = '+' + fmt$(popAcc);
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(popT); popT = setTimeout(() => { popAcc = 0; }, 900);
 }
 
-const TOOL_CAP = { hand: 1, toyshovel: 18, spade: 54, pitchfork: 62, wheelbarrow: 2100, bucket: 600 };
-function syncCap() {
-  state.capacidad = TOOL_CAP[state.tool] || 1;
-  if (state.enMano > state.capacidad) state.enMano = state.capacidad;
-}
-syncCap();
-
-const canvas = document.getElementById('c');
-const elMoney = document.getElementById('money');
-const elHay = document.getElementById('hay-left');
-const elRate = document.getElementById('rate');
-const elPrompt = document.getElementById('prompt');
-const elPromptTop = document.getElementById('prompt-top');
-const elPromptKey = document.getElementById('prompt-key');
-const elPromptLab = document.getElementById('prompt-lab');
-const elPromptSub = document.getElementById('prompt-sub');
-const elToast = document.getElementById('toast');
-const elCoin = document.getElementById('coin-pop');
-const elMStep = document.getElementById('m-step');
-const elMTxt = document.getElementById('m-txt');
-const elMHint = document.getElementById('m-hint');
-const elMProg = document.getElementById('m-prog');
-const elMBar = document.getElementById('m-bar');
-const btnInteract = document.getElementById('btn-interact');
-const shopEl = document.getElementById('shop');
-const shopList = document.getElementById('shop-list');
-const shopAvail = document.getElementById('shop-avail');
-const startGate = document.getElementById('start-gate');
-const needleFx = document.getElementById('needle-fx');
-
-function fmt$(n) { return '$' + n.toFixed(2); }
-function fmtN(n) { return Math.floor(n).toLocaleString('en-US'); }
-
-let toastTimer = 0;
-function toast(msg) {
-  elToast.textContent = msg;
-  elToast.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => elToast.classList.remove('show'), 1800);
+// ================== AUDIO ==================
+let AC = null;
+function beep(freq = 880, dur = 0.06, vol = 0.08, type = 'square') {
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = vol;
+    g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + dur);
+    o.connect(g).connect(AC.destination); o.start(); o.stop(AC.currentTime + dur + 0.02);
+  } catch (_) {}
 }
 
-function updateHUD() {
-  elMoney.textContent = fmt$(state.monedas);
-  elHay.textContent = fmtN(state.pajaRestante) + ' HAY LEFT';
-  const now = performance.now();
-  state.earnWindow = state.earnWindow.filter(e => now - e.t < 60000);
-  const perMin = state.earnWindow.reduce((a, e) => a + e.v, 0);
-  elRate.textContent = fmt$(perMin) + '/min';
-
-  const steps = [
-    [1, 'Pick hay from the mountain', 'Walk up to the hay. Hold LMB / E to pick strands.'],
-    [2, 'Sell hay at the stand', 'The selling stand is in the far corner. Walk there. Stand at the open bay and press LMB to drop the hay in. You get money for it.'],
-    [3, 'Visit Supply Co.', 'Open the shop and buy a tool. Toy Shovel is $0.25.'],
-    [4, 'Sell hay at the stand', 'Keep selling until you reach $1.25. Buy better tools.'],
-    [5, 'Keep searching for the needle', 'Hold pick near the mountain. The needle is somewhere in there.'],
-  ];
-  let mi = Math.min(state.mision, 4);
-  if (state.agujaEncontrada) mi = 4;
-  const s = steps[mi];
-  const stepNum = [1, 2, 3, 4, 5][mi];
-  elMStep.textContent = 'STEP ' + stepNum + ' OF 46';
-  elMTxt.textContent = s[1];
-  elMHint.textContent = s[2];
-  const left = Math.max(0, GOAL - state.monedas);
-  elMProg.textContent = fmt$(state.monedas) + ' / ' + fmt$(GOAL) + ' · ' + fmt$(left) + ' left';
-  elMBar.style.width = Math.min(100, (state.monedas / GOAL) * 100) + '%';
-  updateHandVisual();
-}
-
-// —— Three.js ——
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-renderer.setSize(window.innerWidth, window.innerHeight, false);
+// ================== THREE SETUP ==================
+const canvas = $('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !IS_TOUCH, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, IS_TOUCH ? 1.5 : 2));
+renderer.setSize(innerWidth, innerHeight, false);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.35;
-
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x7eb6ea);
-scene.fog = new THREE.Fog(0xb8d4f0, 70, 140);
+scene.background = new THREE.Color(0x2a2119);
+scene.fog = new THREE.Fog(0x6e5a44, 28, 85);
+const camera = new THREE.PerspectiveCamera(78, innerWidth / innerHeight, 0.05, 150);
+camera.rotation.order = 'YXZ';
+scene.add(camera);
 
-const camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.1, 220);
-camera.position.set(0, 1.7, 22);
-
-// Sky dome
-{
-  const skyGeo = new THREE.SphereGeometry(180, 32, 16);
-  const skyMat = new THREE.ShaderMaterial({
-    side: THREE.BackSide,
-    depthWrite: false,
-    uniforms: {},
-    vertexShader: `
-      varying vec3 vPos;
-      void main() {
-        vPos = position;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      varying vec3 vPos;
-      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
-      float noise(vec2 p){
-        vec2 i = floor(p); vec2 f = fract(p);
-        float a = hash(i), b = hash(i+vec2(1,0)), c = hash(i+vec2(0,1)), d = hash(i+vec2(1,1));
-        vec2 u = f*f*(3.0-2.0*f);
-        return mix(a,b,u.x) + (c-a)*u.y*(1.0-u.x) + (d-b)*u.x*u.y;
-      }
-      void main() {
-        vec3 n = normalize(vPos);
-        float h = n.y * 0.5 + 0.5;
-        vec3 zenith = vec3(0.28, 0.58, 0.95);
-        vec3 horizon = vec3(0.78, 0.88, 0.98);
-        vec3 col = mix(horizon, zenith, smoothstep(0.0, 0.9, h));
-        float c = noise(n.xz * 2.8 + n.y * 0.5);
-        c = smoothstep(0.48, 0.78, c) * smoothstep(0.02, 0.5, n.y);
-        col = mix(col, vec3(1.0), c * 0.5);
-        gl_FragColor = vec4(col, 1.0);
-      }
-    `,
-  });
-  scene.add(new THREE.Mesh(skyGeo, skyMat));
-}
-
-const hemi = new THREE.HemisphereLight(0xfff0d8, 0x8a7a60, 0.6);
-scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xfff0c8, 2.4);
-sun.position.set(22, 48, 14);
-sun.target.position.set(-2, 0, -8);
-scene.add(sun.target);
+scene.add(new THREE.HemisphereLight(0xfff0d6, 0x6a5238, 1.05));
+const sun = new THREE.DirectionalLight(0xffe2b0, 1.9);
+sun.position.set(-14, 30, 12); sun.target.position.set(2, 0, -4);
+scene.add(sun, sun.target);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.near = 5;
-sun.shadow.camera.far = 110;
-sun.shadow.camera.left = -42;
-sun.shadow.camera.right = 42;
-sun.shadow.camera.top = 42;
-sun.shadow.camera.bottom = -42;
-sun.shadow.bias = -0.00035;
-sun.shadow.normalBias = 0.035;
-sun.shadow.radius = 2.5;
-scene.add(sun);
-const fill = new THREE.DirectionalLight(0xa8c8f0, 0.4);
-fill.position.set(-22, 20, -10);
-scene.add(fill);
-scene.add(new THREE.AmbientLight(0xd0dff0, 0.28));
+sun.shadow.mapSize.set(IS_TOUCH ? 1024 : 2048, IS_TOUCH ? 1024 : 2048);
+Object.assign(sun.shadow.camera, { left: -36, right: 36, top: 30, bottom: -30, near: 5, far: 80 });
+sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.04;
+scene.add(new THREE.AmbientLight(0xffe8c8, 0.25));
 
-function makeMat(color, rough = 0.9, metal = 0.05) {
-  return new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
+// ================== TEXTURES ==================
+function canvasTex(w, h, draw, rep) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  if (rep) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep[0], rep[1]); }
+  return t;
 }
-
-const yard = new THREE.Group();
-scene.add(yard);
-
-// Dusty packed earth with subtle track marks via canvas texture
-function makeGroundTex() {
-  const sc = document.createElement('canvas');
-  sc.width = 512; sc.height = 512;
-  const ctx = sc.getContext('2d');
-  // Light dusty packed earth
-  ctx.fillStyle = '#cbb892';
-  ctx.fillRect(0, 0, 512, 512);
-  for (let i = 0; i < 14000; i++) {
-    const x = Math.random() * 512, y = Math.random() * 512;
-    const v = 150 + Math.random() * 70;
-    const a = 0.08 + Math.random() * 0.22;
-    ctx.fillStyle = `rgba(${v},${v - 18},${v - 48},${a})`;
-    ctx.fillRect(x, y, 1 + Math.random() * 2.5, 1 + Math.random() * 2.5);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const floorTex = canvasTex(512, 512, (g, w, h) => {
+  g.fillStyle = '#b89668'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 9000; i++) { const v = rnd(-26, 22); g.fillStyle = `rgba(${150 + v},${118 + v},${80 + v},.5)`; g.fillRect(rnd(0, w), rnd(0, h), rnd(1, 4), rnd(1, 4)); }
+  for (let i = 0; i < 70; i++) { g.strokeStyle = `rgba(${rnd(200,240)},${rnd(170,200)},${rnd(90,120)},.8)`; g.lineWidth = rnd(1, 2); g.beginPath(); const x = rnd(0, w), y = rnd(0, h), a = rnd(0, 6.28), l = rnd(8, 26); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); }
+}, [14, 11]);
+const plankTex = canvasTex(512, 512, (g, w, h) => {
+  const n = 8, pw = w / n;
+  for (let i = 0; i < n; i++) {
+    const b = rnd(-14, 14); g.fillStyle = `rgb(${104 + b},${70 + b},${46 + b})`; g.fillRect(i * pw, 0, pw, h);
+    for (let k = 0; k < 40; k++) { g.fillStyle = `rgba(${60 + b},${38 + b},${22 + b},${rnd(.08,.25)})`; g.fillRect(i * pw + rnd(0, pw), 0, rnd(1, 3), h); }
+    g.fillStyle = 'rgba(25,15,8,.85)'; g.fillRect(i * pw, 0, 3, h);
+    if (Math.random() < .5) { g.fillStyle = 'rgba(40,24,12,.5)'; g.beginPath(); g.ellipse(i * pw + pw / 2, rnd(0, h), 5, 9, 0, 0, 6.28); g.fill(); }
   }
-  // Soft mottled patches (dust / packed spots)
-  for (let i = 0; i < 80; i++) {
-    const x = Math.random() * 512, y = Math.random() * 512;
-    const r = 8 + Math.random() * 28;
-    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, `rgba(140,110,70,${0.08 + Math.random() * 0.1})`);
-    g.addColorStop(1, 'rgba(140,110,70,0)');
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+}, [10, 1.2]);
+const strawTex = canvasTex(512, 512, (g, w, h) => {
+  g.fillStyle = '#b8862e'; g.fillRect(0, 0, w, h);
+  const cols = ['#f2d27a', '#e8bf5a', '#d9a843', '#c28f35', '#f7e3a0', '#a8752a'];
+  for (let i = 0; i < 5200; i++) {
+    g.strokeStyle = cols[(Math.random() * cols.length) | 0]; g.lineWidth = rnd(1.2, 3.2);
+    const x = rnd(-20, w + 20), y = rnd(-20, h + 20), a = rnd(0, 6.28), l = rnd(14, 46);
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
   }
-  // Very faint irregular tracks (not parallel wood grain)
-  ctx.strokeStyle = 'rgba(100,78,45,0.1)';
-  ctx.lineWidth = 4;
-  for (let t = 0; t < 3; t++) {
-    ctx.beginPath();
-    let x = 40 + Math.random() * 400, y = 0;
-    ctx.moveTo(x, y);
-    while (y < 512) {
-      y += 12 + Math.random() * 18;
-      x += (Math.random() - 0.5) * 22;
-      ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  }
-  const tex = new THREE.CanvasTexture(sc);
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(6, 6);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
+}, [7, 3]);
+function chevronCanvas(ghost) {
+  return (g, w, h) => {
+    g.fillStyle = ghost ? '#ffffff' : '#2b2c2f'; g.fillRect(0, 0, w, h);
+    if (!ghost) for (let i = 0; i < 400; i++) { g.fillStyle = `rgba(0,0,0,${rnd(.05,.2)})`; g.fillRect(rnd(0, w), rnd(0, h), rnd(2, 20), 1); }
+    g.fillStyle = ghost ? '#ffffff' : '#f2f0ea';
+    // chevron pointing DOWN in canvas (= +Z / travel direction on the belt)
+    const cx = w / 2, top = h * 0.28, arm = w * 0.36, th = h * 0.13;
+    g.beginPath(); g.moveTo(cx - arm, top); g.lineTo(cx, top + arm * 0.62); g.lineTo(cx + arm, top); g.lineTo(cx + arm, top + th); g.lineTo(cx, top + arm * 0.62 + th); g.lineTo(cx - arm, top + th); g.closePath(); g.fill();
+  };
 }
-const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(100, 100),
-  new THREE.MeshStandardMaterial({
-    map: makeGroundTex(), color: 0xffffff, roughness: 0.97, metalness: 0.02,
-  })
-);
-floor.rotation.x = -Math.PI / 2;
-floor.receiveShadow = true;
-yard.add(floor);
-
-const WALL_H = 28;
-const WALL_LEN = 56;
-
-function addFlatWall(width, height, x, y, z, rotY, baseColor) {
-  const g = new THREE.Group();
-  g.position.set(x, y, z);
-  g.rotation.y = rotY;
-  const panel = new THREE.Mesh(
-    new THREE.BoxGeometry(width, height, 0.32),
-    makeMat(baseColor, 0.93, 0.03)
-  );
-  panel.castShadow = true;
-  panel.receiveShadow = true;
-  g.add(panel);
-  const seamMat = makeMat(new THREE.Color(baseColor).offsetHSL(0, 0, -0.06).getHex(), 0.9);
-  const seams = Math.floor(width / 1.35);
-  for (let i = 0; i < seams; i++) {
-    const seam = new THREE.Mesh(new THREE.BoxGeometry(0.05, height * 0.98, 0.07), seamMat);
-    seam.position.set(-width / 2 + 0.65 + i * 1.35, 0, 0.18);
-    g.add(seam);
-  }
-  const pillarMat = makeMat(0x2e2822, 0.8, 0.18);
-  for (const sx of [-width / 2 + 0.18, width / 2 - 0.18]) {
-    const p = new THREE.Mesh(new THREE.BoxGeometry(0.5, height + 0.5, 0.5), pillarMat);
-    p.position.set(sx, 0, 0.04);
-    p.castShadow = true;
-    g.add(p);
-  }
-  yard.add(g);
-}
-
-const wallWood = 0xc8b090;
-addFlatWall(WALL_LEN, WALL_H, 0, WALL_H / 2, -32, 0, wallWood);
-addFlatWall(WALL_LEN, WALL_H, -32, WALL_H / 2, 0, Math.PI / 2, 0xc0a888);
-addFlatWall(WALL_LEN, WALL_H, 32, WALL_H / 2, 0, -Math.PI / 2, 0xb8a080);
-addFlatWall(16, WALL_H, -20, WALL_H / 2, 32, Math.PI, wallWood);
-addFlatWall(16, WALL_H, 20, WALL_H / 2, 32, Math.PI, wallWood);
-
-// Open roof: thin dark metal arches / trusses only
-const beamMat = makeMat(0x2a2622, 0.65, 0.4);
-for (let i = -4; i <= 4; i++) {
-  const beam = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.35, 64), beamMat);
-  beam.position.set(i * 7, WALL_H + 0.8, 0);
-  beam.castShadow = true;
-  yard.add(beam);
-}
-for (let z = -24; z <= 24; z += 12) {
-  const arch = new THREE.Mesh(new THREE.BoxGeometry(64, 0.28, 0.28), beamMat);
-  arch.position.set(0, WALL_H + 1.6, z);
-  yard.add(arch);
-  // curved-looking braces via angled boxes
-  for (const side of [-1, 1]) {
-    const brace = new THREE.Mesh(new THREE.BoxGeometry(0.2, 10, 0.2), beamMat);
-    brace.position.set(side * 22, WALL_H - 4, z);
-    brace.rotation.z = side * 0.5;
-    yard.add(brace);
-  }
-}
-
-// —— Hay mountain: soft shaded golden volume + outer shell of ultra-thin straws ——
-const hayGroup = new THREE.Group();
-hayGroup.position.set(-2, 0, -10);
-scene.add(hayGroup);
-
-const underShadow = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 24, 14),
-  new THREE.MeshStandardMaterial({
-    color: 0x3a3010, flatShading: false, transparent: true, opacity: 0.35, depthWrite: false,
-  })
-);
-underShadow.scale.set(14, 0.28, 14);
-underShadow.position.y = 0.04;
-underShadow.receiveShadow = true;
-hayGroup.add(underShadow);
-
-// Soft volume mesh — monolithic golden cone from afar
-function makeHayVolumeMat() {
-  return new THREE.ShaderMaterial({
-    lights: false,
-    uniforms: {
-      uSunDir: { value: new THREE.Vector3(0.4, 0.85, 0.3).normalize() },
-      uColorLit: { value: new THREE.Color(0xffe566) },
-      uColorMid: { value: new THREE.Color(0xf5c842) },
-      uColorSha: { value: new THREE.Color(0xc9952e) },
-    },
-    vertexShader: `
-      varying vec3 vN;
-      varying vec3 vW;
-      void main() {
-        vN = normalize(normalMatrix * normal);
-        vec4 wp = modelMatrix * vec4(position, 1.0);
-        vW = wp.xyz;
-        gl_Position = projectionMatrix * viewMatrix * wp;
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 uSunDir, uColorLit, uColorMid, uColorSha;
-      varying vec3 vN;
-      varying vec3 vW;
-      float hash(vec3 p){ return fract(sin(dot(p, vec3(127.1,311.7,74.7))) * 43758.5453); }
-      void main() {
-        vec3 n = normalize(vN);
-        float ndl = clamp(dot(n, uSunDir), 0.0, 1.0);
-        float wrap = ndl * 0.7 + 0.3;
-        vec3 col = mix(uColorSha, uColorMid, smoothstep(0.0, 0.45, wrap));
-        col = mix(col, uColorLit, smoothstep(0.45, 1.0, wrap));
-        float nse = hash(floor(vW * 3.5)) * 0.08 - 0.04;
-        col += nse;
-        // slight rim
-        float rim = pow(1.0 - abs(n.y), 2.0) * 0.08;
-        col += rim * uColorLit;
-        gl_FragColor = vec4(col, 1.0);
-      }
-    `,
+const chevTexBase = canvasTex(128, 128, chevronCanvas(false));
+chevTexBase.wrapS = chevTexBase.wrapT = THREE.RepeatWrapping;
+function signTex(text, o = {}) {
+  return canvasTex(o.w || 512, o.h || 160, (g, w, h) => {
+    g.fillStyle = o.bg || '#e9e2d0'; g.fillRect(0, 0, w, h);
+    if (o.wood) { for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(90,60,30,${rnd(.05,.15)})`; g.fillRect(0, rnd(0, h), w, rnd(1, 3)); } }
+    g.strokeStyle = o.border || '#3a2a1a'; g.lineWidth = o.bw || 10; g.strokeRect(0, 0, w, h);
+    g.fillStyle = o.fg || '#2a2018'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const lines = text.split('\n'), fs = o.fs || 84;
+    g.font = `${o.weight || 800} ${fs}px "Barlow Condensed", "Arial Narrow", sans-serif`;
+    lines.forEach((l, i) => g.fillText(l, w / 2, h / 2 + (i - (lines.length - 1) / 2) * fs * 1.05));
   });
 }
-const volMat = makeHayVolumeMat();
-// Rounded mountain: cone + slight sphere blend via scaled cone
-const innerCone = new THREE.Mesh(
-  new THREE.ConeGeometry(12.5, HAY_HEIGHT, 48, 1, false),
-  volMat
-);
-innerCone.position.y = HAY_HEIGHT * 0.5;
-innerCone.castShadow = true;
-innerCone.receiveShadow = true;
-hayGroup.add(innerCone);
-// Soft base bulge
-const baseBulge = new THREE.Mesh(
-  new THREE.SphereGeometry(11.5, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.45),
-  volMat
-);
-baseBulge.position.y = 1.2;
-baseBulge.scale.set(1.05, 0.55, 1.05);
-baseBulge.castShadow = true;
-hayGroup.add(baseBulge);
-
-const strawGeo = new THREE.CapsuleGeometry(0.011, 1.15, 2, 4);
-const strawMat = new THREE.MeshStandardMaterial({
-  color: 0xffe566,
-  roughness: 0.82,
-  metalness: 0,
-});
-const strawMesh = new THREE.InstancedMesh(strawGeo, strawMat, VISUAL_STRAW);
-strawMesh.castShadow = true;
-strawMesh.receiveShadow = true;
-strawMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-hayGroup.add(strawMesh);
-
-const dummy = new THREE.Object3D();
-const STRAW_HEX = [0xffe566, 0xf5c842, 0xe8b84a, 0xc9952e, 0xd4a84b];
-const _c = new THREE.Color();
-
-function seededRand(i) {
-  const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
-  return x - Math.floor(x);
+const M = (color, rough = 0.85, metal = 0.05, extra = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: rough, metalness: metal }, extra));
+const matWood = M(0x5a3b24), matDark = M(0x3a2616), matSteel = M(0x7c8288, 0.5, 0.6), matBlack = M(0x1d1e20, 0.7, 0.3), matOrange = M(0xe0661c, 0.6, 0.2), matStraw = M(0xe7c065, 0.9, 0);
+function box(w, h, d, mat, x = 0, y = 0, z = 0, parent = scene, shadow = true) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z);
+  if (shadow) { m.castShadow = true; m.receiveShadow = true; }
+  parent.add(m); return m;
+}
+function cyl(rt, rb, h, mat, x, y, z, parent = scene, seg = 12) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m;
 }
 
-function placeStraw(i, scalePile = 1) {
-  const r0 = seededRand(i);
-  const r1 = seededRand(i + 17);
-  const r2 = seededRand(i + 41);
-  const r3 = seededRand(i + 73);
-  const r4 = seededRand(i + 101);
-  const r5 = seededRand(i + 139);
-
-  const hNorm = Math.pow(r0, 0.58);
-  const maxH = HAY_HEIGHT * scalePile;
-  const y = 0.35 + hNorm * maxH;
-  const radiusAtH = (1.0 - hNorm * 0.96) * 13.8 * scalePile;
-  const shell = 0.78 + r2 * 0.22;
-  const angle = r1 * Math.PI * 2 + i * 0.618033;
-  const r = radiusAtH * Math.sqrt(shell);
-  const x = Math.cos(angle) * r + (r3 - 0.5) * 0.4;
-  const z = Math.sin(angle) * r + (r4 - 0.5) * 0.4;
-
-  dummy.position.set(x, y, z);
-  const chaos = 0.55 + hNorm * 1.5;
-  dummy.rotation.set(
-    (r0 - 0.5) * chaos * 2.0,
-    r1 * Math.PI * 2,
-    (r2 - 0.5) * chaos * 1.8
-  );
-  const len = 0.85 + r5 * 1.35;
-  const thin = 0.4 + r3 * 0.55;
-  dummy.scale.set(thin, len, thin);
-  dummy.updateMatrix();
-  strawMesh.setMatrixAt(i, dummy.matrix);
-
-  let ci;
-  const roll = r4;
-  if (roll < 0.32) ci = 0;
-  else if (roll < 0.58) ci = 1;
-  else if (roll < 0.78) ci = 2;
-  else if (roll < 0.92) ci = 3;
-  else ci = 4;
-  _c.setHex(STRAW_HEX[ci]);
-  _c.offsetHSL(0, 0.04, (r5 - 0.4) * 0.08);
-  strawMesh.setColorAt(i, _c);
-}
-
-const pileScale = () => Math.max(0.35, Math.pow(Math.min(1, state.pajaRestante / PAJA_INICIAL), 0.35));
-
-function rebuildHaystack() {
-  const sc = pileScale();
-  const visible = Math.max(200, Math.floor(VISUAL_STRAW * Math.max(0.08, Math.min(1, state.pajaRestante / Math.min(PAJA_INICIAL, 500000)))));
-  for (let i = 0; i < VISUAL_STRAW; i++) {
-    if (i < visible) {
-      placeStraw(i, sc);
-    } else {
-      dummy.position.set(0, -200, 0);
-      dummy.scale.set(0, 0, 0);
-      dummy.updateMatrix();
-      strawMesh.setMatrixAt(i, dummy.matrix);
-    }
-  }
-  strawMesh.instanceMatrix.needsUpdate = true;
-  strawMesh.count = visible;
-  if (strawMesh.instanceColor) strawMesh.instanceColor.needsUpdate = true;
-  underShadow.scale.set(14 * sc, 0.28, 14 * sc);
-  innerCone.scale.set(sc, sc, sc);
-  innerCone.position.y = HAY_HEIGHT * 0.5 * sc;
-  baseBulge.scale.set(1.05 * sc, 0.55 * sc, 1.05 * sc);
-  baseBulge.position.y = 1.2 * sc;
-}
-rebuildHaystack();
-
-const hayCollider = new THREE.Vector3(-2, 0, -10);
-const HAY_RADIUS = 16;
-
-function makeSignTexture(text, opts = {}) {
-  const w = opts.w || 512, h = opts.h || 128;
-  const sc = document.createElement('canvas');
-  sc.width = w; sc.height = h;
-  const ctx = sc.getContext('2d');
-  ctx.fillStyle = opts.bg || '#f5f0e6';
-  ctx.fillRect(0, 0, w, h);
-  if (opts.border) {
-    ctx.strokeStyle = opts.border;
-    ctx.lineWidth = opts.bw || 10;
-    ctx.strokeRect(6, 6, w - 12, h - 12);
-  }
-  ctx.fillStyle = opts.fg || '#1a1208';
-  ctx.font = opts.font || `bold ${Math.floor(h * 0.38)}px system-ui,sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const lines = String(text).split('\n');
-  const lh = h * 0.32;
-  const startY = h / 2 - ((lines.length - 1) * lh) / 2;
-  lines.forEach((ln, i) => ctx.fillText(ln, w / 2, startY + i * lh));
-  const tex = new THREE.CanvasTexture(sc);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
-function makeSmallPrice(label) {
-  return makeSignTexture(label, {
-    w: 256, h: 96, bg: '#faf8f2', border: '#111', bw: 6,
-    font: 'bold 28px system-ui,sans-serif', fg: '#111',
-  });
-}
-
-function makePricesBoard() {
-  const sc = document.createElement('canvas');
-  sc.width = 280; sc.height = 400;
-  const ctx = sc.getContext('2d');
-  ctx.fillStyle = '#111';
-  ctx.fillRect(0, 0, 280, 400);
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 32px system-ui,sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('PRICES', 140, 42);
-  ctx.font = '18px system-ui,sans-serif';
-  ctx.textAlign = 'left';
-  const lines = [
-    ['Toy Shovel', '$0.25'],
-    ['Spade', '$12'],
-    ['Pitchfork', '$30'],
-    ['Wheelbarrow', '$150'],
-    ['Bucket', '$10'],
-  ];
-  lines.forEach((L, i) => {
-    ctx.fillStyle = '#eee';
-    ctx.fillText(L[0], 24, 100 + i * 52);
-    ctx.fillStyle = '#9f9';
-    ctx.fillText(L[1], 24, 122 + i * 52);
-  });
-  const tex = new THREE.CanvasTexture(sc);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
-// —— Sell bay: simple dark open bay / trailer in far corner ——
-const sellGroup = new THREE.Group();
-sellGroup.position.set(18, 0, -18);
-scene.add(sellGroup);
-
+// ================== WAREHOUSE ==================
 {
-  const dark = makeMat(0x222428, 0.72, 0.22);
-  const wood = makeMat(0x4a3828, 0.88);
-  // Bay structure — open front
-  const floorBay = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.15, 3.2), dark);
-  floorBay.position.y = 0.3;
-  floorBay.receiveShadow = true;
-  sellGroup.add(floorBay);
-  const back = new THREE.Mesh(new THREE.BoxGeometry(4.2, 2.8, 0.2), dark);
-  back.position.set(0, 1.7, -1.5);
-  back.castShadow = true;
-  sellGroup.add(back);
-  const left = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.8, 3.0), dark);
-  left.position.set(-2.0, 1.7, 0);
-  sellGroup.add(left);
-  const right = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.8, 3.0), dark);
-  right.position.set(2.0, 1.7, 0);
-  sellGroup.add(right);
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.12, 3.4), makeMat(0x1a1c20, 0.65, 0.3));
-  roof.position.set(0, 3.15, 0);
-  sellGroup.add(roof);
-  // Drop counter / bay lip
-  const counter = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.14, 0.7), wood);
-  counter.position.set(0, 1.05, 1.4);
-  sellGroup.add(counter);
-  const sign = new THREE.Mesh(
-    new THREE.BoxGeometry(3.2, 0.6, 0.06),
-    new THREE.MeshStandardMaterial({
-      map: makeSignTexture('SELL HAY', { w: 512, h: 120, bg: '#f8f4ec', border: '#111', font: 'bold 52px system-ui,sans-serif' }),
-    })
-  );
-  sign.position.set(0, 3.55, 0.2);
-  sellGroup.add(sign);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(WX * 2, WZ * 2), M(0xffffff, 0.97, 0, { map: floorTex }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; floor.userData.floor = true; scene.add(floor);
+  const wallMat = M(0xffffff, 0.9, 0, { map: plankTex });
+  const wallMatZ = M(0xffffff, 0.9, 0, { map: plankTex.clone() }); wallMatZ.map.repeat.set(7.5, 1.2); wallMatZ.map.needsUpdate = true;
+  box(WX * 2, WALL_H, 0.3, wallMat, 0, WALL_H / 2, -WZ - 0.15);
+  box(WX * 2, WALL_H, 0.3, wallMat, 0, WALL_H / 2, WZ + 0.15);
+  box(0.3, WALL_H, WZ * 2, wallMatZ, -WX - 0.15, WALL_H / 2, 0);
+  box(0.3, WALL_H, WZ * 2, wallMatZ, WX + 0.15, WALL_H / 2, 0);
+  // skirting
+  box(WX * 2, 0.5, 0.35, matDark, 0, 0.25, -WZ); box(WX * 2, 0.5, 0.35, matDark, 0, 0.25, WZ);
+  box(0.35, 0.5, WZ * 2, matDark, -WX, 0.25, 0); box(0.35, 0.5, WZ * 2, matDark, WX, 0.25, 0);
+  // gabled roof along X
+  const RIDGE = 15.5, half = WZ + 0.5, slope = Math.hypot(half, RIDGE - WALL_H), ang = Math.atan2(RIDGE - WALL_H, half);
+  const roofMat = M(0x4a3220, 0.95, 0, { map: plankTex.clone(), side: THREE.DoubleSide }); roofMat.map.repeat.set(14, 3); roofMat.map.needsUpdate = true;
+  for (const s of [-1, 1]) {
+    const r = new THREE.Mesh(new THREE.PlaneGeometry(WX * 2 + 1, slope), roofMat);
+    r.position.set(0, (WALL_H + RIDGE) / 2, s * half / 2); r.rotation.x = s > 0 ? -(Math.PI / 2 - ang) : -(Math.PI / 2 + ang);
+    scene.add(r);
+  }
+  // gable ends
+  const gShape = new THREE.Shape(); gShape.moveTo(-half, 0); gShape.lineTo(half, 0); gShape.lineTo(0, RIDGE - WALL_H); gShape.closePath();
+  for (const s of [-1, 1]) { const g = new THREE.Mesh(new THREE.ShapeGeometry(gShape), M(0x5a3b24, 0.95, 0, { side: THREE.DoubleSide, map: plankTex })); g.rotation.y = Math.PI / 2; g.position.set(s * WX, WALL_H, 0); scene.add(g); }
+  // posts + trusses
+  for (let x = -WX + 0.4; x <= WX; x += 7.75) {
+    for (const z of [-WZ + 0.35, WZ - 0.35]) box(0.45, WALL_H, 0.45, matDark, x, WALL_H / 2, z);
+    box(0.3, 0.45, WZ * 2, matDark, x, WALL_H - 0.3, 0, scene, false);
+    for (const s of [-1, 1]) { const rafter = box(0.25, 0.35, slope, matDark, x, (WALL_H + RIDGE) / 2 - 0.3, s * half / 2, scene, false); rafter.rotation.x = s * ang; }
+    box(0.22, RIDGE - WALL_H, 0.22, matDark, x, (WALL_H + RIDGE) / 2 - 0.3, 0, scene, false);
+  }
+  for (let z = -WZ + 0.4; z <= WZ; z += 7.66) for (const x of [-WX + 0.35, WX - 0.35]) box(0.45, WALL_H, 0.45, matDark, x, WALL_H / 2, z);
+  // roof glow strips (light through gaps)
+  const glow = new THREE.MeshBasicMaterial({ color: 0xfff1d0, transparent: true, opacity: 0.25, fog: false });
+  for (let x = -WX + 4; x < WX; x += 7.75) { const g = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 18), glow); g.rotation.x = Math.PI / 2; g.position.set(x, 12.2, 0); scene.add(g); }
+  // bay door (north wall) with hazard stripes
+  const doorX = -6;
+  const doorTex = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#4d6a55'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 12) { g.fillStyle = '#3a5242'; g.fillRect(0, y, w, 3); g.fillStyle = '#6b8a73'; g.fillRect(0, y + 3, w, 1); } });
+  box(6.2, 5.2, 0.12, M(0xffffff, 0.6, 0.4, { map: doorTex }), doorX, 2.6, -WZ + 0.08);
+  const hz = canvasTex(256, 32, (g, w, h) => { g.fillStyle = '#e8c21e'; g.fillRect(0, 0, w, h); g.fillStyle = '#111'; for (let x = -32; x < w; x += 32) { g.beginPath(); g.moveTo(x, h); g.lineTo(x + 16, 0); g.lineTo(x + 32, 0); g.lineTo(x + 16, h); g.fill(); } });
+  box(6.6, 0.35, 0.14, M(0xffffff, 0.7, 0.1, { map: hz }), doorX, 0.18, -WZ + 0.12);
+  box(0.3, 5.6, 0.3, matSteel, doorX - 3.25, 2.8, -WZ + 0.2); box(0.3, 5.6, 0.3, matSteel, doorX + 3.25, 2.8, -WZ + 0.2); box(7, 0.4, 0.4, matSteel, doorX, 5.4, -WZ + 0.2);
+  for (const bx of [doorX - 4, doorX + 4]) { cyl(0.13, 0.13, 1.0, matOrange, bx, 0.5, -WZ + 0.9); cyl(0.14, 0.14, 0.12, M(0x222222), bx, 1.02, -WZ + 0.9); }
 }
-const dropZone = new THREE.Mesh(
-  new THREE.BoxGeometry(2.2, 0.05, 0.9),
-  new THREE.MeshStandardMaterial({ color: 0x2ee86a, transparent: true, opacity: 0.22 })
-);
-dropZone.position.set(0, 1.14, 1.45);
-sellGroup.add(dropZone);
 
-const sellFx = [];
-const sellFxGeo = new THREE.CapsuleGeometry(0.012, 0.4, 2, 4);
-const sellFxMat = new THREE.MeshStandardMaterial({ color: 0xffe566, roughness: 0.75 });
-for (let i = 0; i < 10; i++) {
-  const m = new THREE.Mesh(sellFxGeo, sellFxMat);
-  m.visible = false;
-  scene.add(m);
-  sellFx.push({ mesh: m, t: 0, active: false, from: new THREE.Vector3(), to: new THREE.Vector3() });
+// digital countdown clock + yard records + delivery board
+const clockCanvas = document.createElement('canvas'); clockCanvas.width = 256; clockCanvas.height = 80;
+const clockTex = new THREE.CanvasTexture(clockCanvas); clockTex.colorSpace = THREE.SRGBColorSpace;
+{ const m = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.7), new THREE.MeshBasicMaterial({ map: clockTex })); m.position.set(-6, 6.4, -WZ + 0.2); scene.add(m); box(2.4, 0.85, 0.1, matBlack, -6, 6.4, -WZ + 0.12); }
+const clockStart = Date.now();
+function drawClock() {
+  const g = clockCanvas.getContext('2d'); g.fillStyle = '#0b0b0b'; g.fillRect(0, 0, 256, 80);
+  let s = Math.max(0, 86292 - Math.floor((Date.now() - clockStart) / 1000));
+  const t = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(v => String(v).padStart(2, '0')).join(':');
+  g.fillStyle = '#ff3b2a'; g.font = 'bold 56px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 128, 42); clockTex.needsUpdate = true;
 }
-const sellPos = sellGroup.position.clone();
+drawClock();
+const recCanvas = document.createElement('canvas'); recCanvas.width = 256; recCanvas.height = 256;
+const recTex = new THREE.CanvasTexture(recCanvas); recTex.colorSpace = THREE.SRGBColorSpace;
+{ const m = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.8), new THREE.MeshBasicMaterial({ map: recTex, color: 0xcccccc })); m.rotation.y = Math.PI / 2; m.position.set(-WX + 0.2, 2.6, -15.5); scene.add(m); }
+function drawRecords() {
+  const g = recCanvas.getContext('2d'); g.fillStyle = '#16181a'; g.fillRect(0, 0, 256, 256); g.strokeStyle = '#5a4a2a'; g.lineWidth = 8; g.strokeRect(0, 0, 256, 256);
+  g.fillStyle = '#e8e6dc'; g.font = 'bold 26px "Barlow Condensed",sans-serif'; g.textAlign = 'center'; g.fillText('YARD RECORDS', 128, 34);
+  g.font = '600 17px "Barlow Condensed",sans-serif'; g.textAlign = 'left';
+  const rows = [['HAY SOLD', fmtN(S.cnt.sold || 0)], ['EARNED', fmt$(S.earnedTotal)], ['BEST $/MIN', fmt$(S.cnt.best || 0)], ['BELTS', String(builds.filter(b => b.type === 'belt' && !b.pre).length)], ['MACHINES', String(builds.filter(b => b.type !== 'belt').length)], ['NEEDLES', S.found.length + ' / 8']];
+  rows.forEach((r, i) => { g.fillStyle = '#9a988f'; g.fillText(r[0], 18, 76 + i * 30); g.fillStyle = '#eef5c0'; g.textAlign = 'right'; g.fillText(r[1], 238, 76 + i * 30); g.textAlign = 'left'; });
+  recTex.needsUpdate = true;
+}
+{ // delivery order easel near the bay door
+  const e = new THREE.Group(); e.position.set(-11.5, 0, -21.2); e.rotation.y = 0.35; scene.add(e);
+  for (const s of [-1, 1]) { const l = box(0.08, 2.1, 0.08, matWood, s * 0.55, 1.0, 0, e); l.rotation.z = s * -0.08; }
+  box(1.4, 1.1, 0.06, M(0xb8834a), 0, 1.45, 0.05, e);
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.8), new THREE.MeshBasicMaterial({ map: signTex('DELIVERY\nORDER\n20 BALES', { w: 256, h: 230, fs: 48, bg: '#f3efe4', bw: 4 }) })); p.position.set(0, 1.45, 0.09); e.add(p);
+}
+// hay bales + barrels (props)
+const baleMat = M(0xd9b05a, 0.95, 0, { map: strawTex });
+for (const [x, y, z] of [[-20.5, 0.4, -21.8], [-19.2, 0.4, -21.8], [-19.85, 1.2, -21.8], [-27, 0.4, -4], [-27, 1.2, -4]]) box(1.2, 0.8, 0.8, baleMat, x, y, z);
+for (const [x, z] of [[-29.5, 18], [-28.4, 18.6], [28.8, 19.5]]) cyl(0.45, 0.45, 1.1, M(0x6a4228), x, 0.55, z);
 
-// —— Supply Co. shop ——
-const shopGroup = new THREE.Group();
-shopGroup.position.set(-20, 0, 10);
-scene.add(shopGroup);
-
+// ================== HAYSTACK ==================
+const prof = f => Math.pow(Math.max(0, 1 - Math.pow(f, 1.8)), 0.55); // radius factor at height fraction f
+let pileS = 1;
+const pileGroup = new THREE.Group(); pileGroup.position.copy(HC); scene.add(pileGroup);
+const pilePts = []; for (let i = 0; i <= 26; i++) { const f = i / 26; pilePts.push(new THREE.Vector2(PILE_R * prof(f) + 0.001, f * PILE_H)); }
+const pileMat = M(0xffffff, 0.95, 0, { map: strawTex });
+const pileMesh = new THREE.Mesh(new THREE.LatheGeometry(pilePts, 72), pileMat);
+pileMesh.castShadow = true; pileMesh.receiveShadow = true; pileMesh.userData.pile = true; pileGroup.add(pileMesh);
+const STRAWS = IS_TOUCH ? 2600 : 4200;
+const strawGeo = new THREE.BoxGeometry(0.03, 0.03, 0.75);
+const strawIM = new THREE.InstancedMesh(strawGeo, M(0xffffff, 0.85, 0), STRAWS);
+strawIM.castShadow = false; strawIM.receiveShadow = true; pileGroup.add(strawIM);
 {
-  const wood = makeMat(0x3d2a1a, 0.88);
-  const woodLite = makeMat(0x5a3e28, 0.85);
-  // Dark wooden counter
-  const base = new THREE.Mesh(new THREE.BoxGeometry(5.5, 1.15, 1.5), wood);
-  base.position.y = 0.58;
-  base.castShadow = true;
-  shopGroup.add(base);
-  const top = new THREE.Mesh(new THREE.BoxGeometry(5.7, 0.1, 1.7), woodLite);
-  top.position.y = 1.2;
-  shopGroup.add(top);
-  const back = new THREE.Mesh(new THREE.BoxGeometry(5.5, 2.4, 0.15), wood);
-  back.position.set(0, 2.0, -0.7);
-  shopGroup.add(back);
-  // SUPPLY CO. sign
-  const sign = new THREE.Mesh(
-    new THREE.BoxGeometry(3.0, 0.55, 0.06),
-    new THREE.MeshStandardMaterial({
-      map: makeSignTexture('SUPPLY CO.', { w: 512, h: 120, bg: '#f8f4ec', border: '#c41e1e', font: 'bold 48px system-ui,sans-serif' }),
-    })
-  );
-  sign.position.set(0, 3.4, -0.65);
-  shopGroup.add(sign);
-  // White awning
-  const awn = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.08, 1.6), makeMat(0xf0ece4, 0.8));
-  awn.position.set(0, 2.9, 0.35);
-  awn.rotation.x = -0.25;
-  shopGroup.add(awn);
-
-  // Price signs on counter front
-  const prices = [
-    ['TOY SHOVEL\n$0.25', -2.0],
-    ['SPADE\n$12', -0.7],
-    ['PITCHFORK\n$30', 0.6],
-    ['WHEELBARROW\n$150', 1.9],
-  ];
-  prices.forEach(([lab, x]) => {
-    const s = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.0, 0.45),
-      new THREE.MeshStandardMaterial({ map: makeSmallPrice(lab), side: THREE.DoubleSide })
-    );
-    s.position.set(x, 0.85, 0.78);
-    shopGroup.add(s);
-  });
-
-  // Yellow toy shovel on counter
-  const shovelG = new THREE.Group();
-  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.7, 8), makeMat(0xf0c020));
-  handle.rotation.z = 0.9;
-  handle.position.set(0, 0.15, 0);
-  shovelG.add(handle);
-  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.28), makeMat(0xf5d040));
-  blade.position.set(0.28, -0.05, 0);
-  shovelG.add(blade);
-  shovelG.position.set(-1.6, 1.3, 0.1);
-  shopGroup.add(shovelG);
-
-  // Wooden bucket
-  const bucket = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.45, 12), makeMat(0x6b4423, 0.7, 0.15));
-  bucket.position.set(-0.5, 1.45, 0.15);
-  shopGroup.add(bucket);
-  const band = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.02, 6, 16), makeMat(0x444, 0.4, 0.6));
-  band.rotation.x = Math.PI / 2;
-  band.position.set(-0.5, 1.35, 0.15);
-  shopGroup.add(band);
-
-  // Pitchfork on back wall
-  const fork = new THREE.Group();
-  const fhandle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.4, 6), makeMat(0x5a3a18));
-  fork.add(fhandle);
-  for (let i = -1; i <= 1; i++) {
-    const tine = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.008, 0.45, 4), makeMat(0x888, 0.4, 0.5));
-    tine.position.set(i * 0.06, 0.85, 0);
-    fork.add(tine);
-  }
-  fork.position.set(1.2, 2.2, -0.55);
-  fork.rotation.z = -0.15;
-  shopGroup.add(fork);
-
-  // Spade on wall
-  const spade = new THREE.Group();
-  const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.1, 6), makeMat(0x5a3a18));
-  spade.add(sh);
-  const sb = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.35, 0.03), makeMat(0x777, 0.4, 0.45));
-  sb.position.y = -0.65;
-  spade.add(sb);
-  spade.position.set(0.3, 2.1, -0.55);
-  shopGroup.add(spade);
-
-  // A-frame PRICES board
-  const board = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.9, 1.25),
-    new THREE.MeshStandardMaterial({ map: makePricesBoard(), side: THREE.DoubleSide })
-  );
-  board.position.set(3.2, 0.9, 1.3);
-  board.rotation.y = -0.5;
-  shopGroup.add(board);
-
-  // Red wheelbarrow on pallet
-  const wb = new THREE.Group();
-  const tray = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.35, 0.65), makeMat(0xb01810, 0.7));
-  tray.position.set(0, 0.45, 0);
-  tray.rotation.z = 0.12;
-  wb.add(tray);
-  const wh = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.05, 8, 18), makeMat(0x222, 0.5, 0.4));
-  wh.rotation.y = Math.PI / 2;
-  wh.position.set(-0.45, 0.28, 0);
-  wb.add(wh);
-  const h1 = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.9, 6), makeMat(0x333));
-  h1.rotation.z = 1.2;
-  h1.position.set(0.55, 0.55, 0.18);
-  wb.add(h1);
-  const h2 = h1.clone();
-  h2.position.z = -0.18;
-  wb.add(h2);
-  // pallet
-  const pallet = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.12, 0.9), makeMat(0x8b6914));
-  pallet.position.set(0, 0.06, 0);
-  wb.add(pallet);
-  wb.position.set(-2.8, 0, 1.8);
-  wb.rotation.y = 0.6;
-  shopGroup.add(wb);
-}
-const shopPos = shopGroup.position.clone();
-
-// Ambient props
-function addBarrel(x, z) {
-  const b = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.44, 1.0, 12), makeMat(0x5a4030, 0.7, 0.2));
-  b.position.set(x, 0.5, z);
-  b.castShadow = true;
-  scene.add(b);
-}
-addBarrel(24, -8);
-addBarrel(25.2, -7.2);
-addBarrel(-24, -16);
-
-// Pick particle bits
-const pickBits = [];
-const bitGeo = new THREE.CapsuleGeometry(0.008, 0.18, 2, 3);
-for (let i = 0; i < 24; i++) {
-  const m = new THREE.Mesh(bitGeo, new THREE.MeshStandardMaterial({
-    color: STRAW_HEX[i % STRAW_HEX.length], roughness: 0.8,
-  }));
-  m.visible = false;
-  scene.add(m);
-  pickBits.push({
-    mesh: m, active: false, t: 0, life: 0.45,
-    vel: new THREE.Vector3(), pos: new THREE.Vector3(),
-  });
-}
-function burstPick() {
-  const origin = camera.position.clone().add(new THREE.Vector3(0, -0.15, -1.2)
-    .applyQuaternion(camera.quaternion));
-  let spawned = 0;
-  for (const b of pickBits) {
-    if (b.active) continue;
-    b.active = true;
-    b.t = 0;
-    b.life = 0.35 + Math.random() * 0.25;
-    b.pos.copy(origin);
-    b.vel.set((Math.random() - 0.5) * 2.5, 1.5 + Math.random() * 2, (Math.random() - 0.5) * 2.5);
-    b.mesh.visible = true;
-    b.mesh.position.copy(origin);
-    b.mesh.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
-    if (++spawned >= 6) break;
+  const d = new THREE.Object3D(), c = new THREE.Color(), cols = [0xf2d27a, 0xe8bf5a, 0xd9a843, 0xc28f35, 0xf7e3a0];
+  for (let i = 0; i < STRAWS; i++) {
+    const onFloor = i > STRAWS * 0.8;
+    const a = Math.random() * Math.PI * 2;
+    if (onFloor) { const r = PILE_R + Math.pow(Math.random(), 2) * 5; d.position.set(Math.cos(a) * r, 0.02, Math.sin(a) * r); d.rotation.set(0, Math.random() * 6.28, 0); }
+    else { const f = Math.pow(Math.random(), 1.4) * 0.97; const r = PILE_R * prof(f) + 0.05; d.position.set(Math.cos(a) * r, f * PILE_H, Math.sin(a) * r); d.rotation.set(rnd(-1.2, 1.2), Math.random() * 6.28, rnd(-1, 1)); }
+    const s = rnd(0.7, 1.5); d.scale.set(1, 1, s); d.updateMatrix(); strawIM.setMatrixAt(i, d.matrix);
+    c.setHex(cols[(Math.random() * cols.length) | 0]); strawIM.setColorAt(i, c);
   }
 }
-
-// —— Player ——
-const player = {
-  pos: new THREE.Vector3(6, 0, 20),
-  yaw: 0.15,
-  pitch: -0.12,
-  vel: new THREE.Vector3(),
-  speed: 5.5,
-  eye: 1.7,
-};
-
-const keys = {};
-const moveInput = { x: 0, y: 0 };
-let lookDragging = false;
-let lastLookX = 0, lastLookY = 0;
-let interactHeld = false;
-let nearTarget = null;
-let started = false;
-let pickAcc = 0;
-let activeSlot = 1;
-
-const handGroup = new THREE.Group();
-camera.add(handGroup);
-handGroup.position.set(0.05, -0.48, -0.75);
-const heldStraws = [];
-const heldGeo = new THREE.CapsuleGeometry(0.012, 0.42, 2, 4);
-for (let i = 0; i < 20; i++) {
-  const m = new THREE.Mesh(heldGeo, new THREE.MeshStandardMaterial({
-    color: STRAW_HEX[i % STRAW_HEX.length], roughness: 0.8,
-  }));
-  m.visible = false;
-  handGroup.add(m);
-  heldStraws.push(m);
+function updatePileScale() {
+  const s = Math.max(0.6, 1 - 0.4 * Math.min(1, S.picked / 400000));
+  if (Math.abs(s - pileS) > 0.002) { pileS = s; pileGroup.scale.set(s, s, s); }
+}
+updatePileScale();
+const pileRAt = y => { const f = y / (PILE_H * pileS); return f >= 1 ? 0 : PILE_R * pileS * prof(Math.max(0, f)); };
+function newNeedle() { S.needle = { a: Math.random() * Math.PI * 2, f: rnd(0.02, 0.16), where: 'pile' }; }
+if (!S.needle) newNeedle();
+function needlePilePos() { const f = S.needle.f, r = PILE_R * pileS * prof(f) - 0.25; return new THREE.Vector3(HC.x + Math.cos(S.needle.a) * r, f * PILE_H * pileS, HC.z + Math.sin(S.needle.a) * r); }
+function takeFromPile(n, at) {
+  n = Math.min(n, Math.floor(S.hay)); if (n <= 0) return { n: 0, needle: false };
+  S.hay -= n; S.picked += n; updatePileScale();
+  let needle = false;
+  if (S.needle.where === 'pile' && at) { const np = needlePilePos(); if (Math.hypot(np.x - at.x, np.z - at.z) < 1.5 && Math.abs(np.y - at.y) < 2.2 && Math.random() < 0.35) { needle = true; S.needle.where = 'loose'; } }
+  return { n, needle };
 }
 
-function updateHandVisual() {
-  const show = state.enMano > 0
-    ? Math.min(heldStraws.length, Math.max(1, Math.min(state.enMano, 16)))
-    : 0;
-  for (let i = 0; i < heldStraws.length; i++) {
-    const m = heldStraws[i];
-    if (i < show) {
-      m.visible = true;
-      m.position.set(
-        (i % 5) * 0.035 - 0.07,
-        Math.floor(i / 5) * 0.04,
-        (i % 3) * 0.028
-      );
-      m.rotation.set(0.5 + i * 0.07, i * 0.45, 0.25 + i * 0.035);
-      m.scale.setScalar(0.9 + Math.min(i, 8) * 0.02);
+// ================== SELL STAND (far corner) ==================
+const SX = -24.6, SZ = -19;                      // HAY IN hopper centre
+const stand = new THREE.Group(); stand.position.set(SX, 0, SZ); scene.add(stand);
+{
+  box(2.2, 1.55, 2.0, M(0x6b4a2e, 0.9, 0, { map: plankTex }), 0, 0.78, 0, stand);
+  box(2.3, 0.1, 2.1, matDark, 0, 1.58, 0, stand);
+  const hop = box(1.5, 0.25, 1.4, matBlack, 0.1, 1.72, 0, stand); hop.material = M(0x151515);
+  for (const s of [-1, 1]) box(0.12, 3.6, 0.12, matWood, 0.9, 1.8, s * 1.0, stand);
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 0.75), M(0xffffff, 0.9, 0, { map: signTex('HAY IN', { wood: true, bg: '#cdb28a', fs: 110, border: '#4a3220' }) }));
+  sign.rotation.y = Math.PI / 2; sign.position.set(0.97, 3.2, 0); stand.add(sign);
+  box(0.06, 0.8, 2.2, matWood, 0.93, 3.2, 0, stand);
+  // cash display
+  box(0.5, 0.35, 0.5, matBlack, -0.5, 1.83, 0.75, stand);
+}
+const cashCanvas = document.createElement('canvas'); cashCanvas.width = 128; cashCanvas.height = 64;
+const cashTex = new THREE.CanvasTexture(cashCanvas); cashTex.colorSpace = THREE.SRGBColorSpace;
+{ const m = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.21), new THREE.MeshBasicMaterial({ map: cashTex })); m.rotation.y = Math.PI / 2; m.position.set(-0.24, 1.85, 0.75); stand.add(m); }
+function drawCash(v) { const g = cashCanvas.getContext('2d'); g.fillStyle = '#081208'; g.fillRect(0, 0, 128, 64); g.fillStyle = '#7dff5a'; g.font = 'bold 34px monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(fmt$(v), 64, 34); cashTex.needsUpdate = true; }
+drawCash(0);
+// price sign at the bay + round scale
+const priceSign = new THREE.Group(); priceSign.position.set(-13.2, 0, -20.6); scene.add(priceSign);
+box(0.08, 1.1, 0.08, matSteel, 0, 0.55, 0, priceSign);
+const priceMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6), M(0xffffff, 0.8, 0, { map: signTex('$0.0222\nPER STRAND', { w: 256, h: 170, fs: 54, bg: '#141414', fg: '#f0efe8', border: '#333', bw: 6 }) }));
+priceMesh.position.set(0, 1.35, 0.05); priceMesh.rotation.y = 0.5; priceSign.add(priceMesh);
+function refreshPriceSign() { priceMesh.material.map = signTex('$' + (PRICE * sellMult()).toFixed(4) + '\nPER STRAND', { w: 256, h: 170, fs: 54, bg: '#141414', fg: '#f0efe8', border: '#333', bw: 6 }); priceMesh.material.needsUpdate = true; }
+{
+  const sc = new THREE.Group(); sc.position.set(-18.6, 0, -20.9); scene.add(sc);
+  box(0.1, 2.3, 0.1, matWood, 0, 1.15, 0, sc);
+  const dial = cyl(0.33, 0.33, 0.08, M(0xe9e4d4, 0.6), 0, 2.45, 0.02, sc, 24); dial.rotation.x = Math.PI / 2;
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.04, 8, 24), matBlack); rim.position.set(0, 2.45, 0.06); sc.add(rim);
+  box(0.02, 0.26, 0.02, M(0xcc2222), 0.05, 2.5, 0.08, sc).rotation.z = -0.5;
+}
+// ================== SHOP COUNTER: SUPPLY CO. ==================
+const SHOP = new THREE.Vector3(-28.8, 0, -9.5);
+{
+  const g = new THREE.Group(); g.position.copy(SHOP); scene.add(g);
+  box(1.2, 1.1, 4.2, M(0x6b4a2e, 0.9, 0, { map: plankTex }), 0.6, 0.55, 0, g);
+  box(1.4, 0.08, 4.4, matDark, 0.6, 1.13, 0, g);
+  box(0.5, 0.35, 0.45, matBlack, 0.5, 1.35, -1.2, g);
+  const s = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.8), M(0xffffff, 0.9, 0, { map: signTex('SUPPLY CO.', { bg: '#1c1c1c', fg: '#f2d45c', border: '#6b5a2a', fs: 96 }) }));
+  s.rotation.y = Math.PI / 2; s.position.set(-0.1, 3.4, 0); g.add(s);
+  // tool rack on the wall behind
+  for (let i = 0; i < 5; i++) { const t = box(0.06, 1.4, 0.06, matWood, -0.05, 2.0, -1.6 + i * 0.8, g); box(0.05, 0.3, 0.25, i % 2 ? matSteel : M(0xe9c64a), -0.05, 1.35, -1.6 + i * 0.8, g); }
+}
+
+// ================== CONVEYOR BELTS ==================
+const segs = [];
+const builds = [];
+let nextId = 1;
+const beltTopMats = [];
+const railMat = M(0x8a9096, 0.45, 0.65), legMat = M(0x5d6166, 0.5, 0.6);
+const pickables = [];   // meshes the crosshair can hit (belts, machines)
+class Seg {
+  constructor(a, b, opt = {}) {
+    this.a = a.clone(); this.b = b.clone(); this.out = null; this.pre = !!opt.pre; this.id = opt.id || ('s' + nextId++);
+    const d = new THREE.Vector3().subVectors(b, a); this.len = d.length(); this.dir = d.clone().normalize();
+    this.hlen = Math.hypot(d.x, d.z);
+    this.root = new THREE.Group(); scene.add(this.root);
+    const inner = new THREE.Group(); inner.position.copy(a); inner.rotation.order = 'YXZ';
+    inner.rotation.y = Math.atan2(d.x, d.z); inner.rotation.x = -Math.atan2(d.y, this.hlen); this.root.add(inner);
+    const tex = chevTexBase.clone(); tex.needsUpdate = true; tex.repeat.set(1, this.len / 1.1);
+    this.tex = tex; beltTopMats.push(tex);
+    const top = new THREE.Mesh(new THREE.PlaneGeometry(BELT_W, this.len), M(0xffffff, 0.75, 0.05, { map: tex }));
+    top.rotation.x = -Math.PI / 2; top.position.set(0, 0, this.len / 2); top.receiveShadow = true; inner.add(top);
+    top.userData.seg = this; pickables.push(top); this.top = top;
+    const body = box(BELT_W + 0.02, 0.16, this.len, M(0x222326, 0.7, 0.3), 0, -0.09, this.len / 2, inner); body.userData.seg = this; pickables.push(body);
+    for (const s of [-1, 1]) { const r = box(0.07, 0.2, this.len + 0.1, railMat, s * (BELT_W / 2 + 0.035), 0.02, this.len / 2, inner); r.userData.seg = this; }
+    for (const z of [0, this.len]) { const rl = cyl(0.1, 0.1, BELT_W + 0.16, M(0x777b80, 0.4, 0.7), 0, -0.07, z, inner, 10); rl.rotation.z = Math.PI / 2; }
+    const nLegs = Math.max(2, Math.ceil(this.len / 2.2) + 1);
+    for (let i = 0; i < nLegs; i++) {
+      const t = Math.min(this.len - 0.15, Math.max(0.15, (i / (nLegs - 1)) * this.len)), p = this.at(t), h = p.y - 0.16;
+      if (h < 0.05) continue;
+      for (const s of [-1, 1]) { const off = new THREE.Vector3(-this.dir.z, 0, this.dir.x).normalize().multiplyScalar(s * BELT_W * 0.42); box(0.07, h, 0.07, legMat, p.x + off.x, h / 2, p.z + off.z, this.root); }
+      const foot = box(BELT_W + 0.1, 0.05, 0.25, legMat, p.x, 0.025, p.z, this.root); foot.rotation.y = inner.rotation.y;
+    }
+    segs.push(this);
+  }
+  at(t) { return new THREE.Vector3().copy(this.a).addScaledVector(this.dir, t); }
+  y(t) { return this.a.y + (this.b.y - this.a.y) * (t / this.len); }
+  project(p) { // horizontal projection → {t, lat}
+    const dx = p.x - this.a.x, dz = p.z - this.a.z, hx = this.b.x - this.a.x, hz = this.b.z - this.a.z;
+    const u = (dx * hx + dz * hz) / (this.hlen * this.hlen);
+    const cx = this.a.x + hx * u, cz = this.a.z + hz * u;
+    return { t: u * this.len, lat: Math.hypot(p.x - cx, p.z - cz), u };
+  }
+  dispose() {
+    scene.remove(this.root); const i = segs.indexOf(this); if (i >= 0) segs.splice(i, 1);
+    for (let k = pickables.length - 1; k >= 0; k--) if (pickables[k].userData.seg === this) pickables.splice(k, 1);
+    beltTopMats.splice(beltTopMats.indexOf(this.tex), 1);
+    for (const s of segs) if (s.out && s.out.seg === this) s.out = null;
+    for (const it of items) if (it.m === 'belt' && it.seg === this) { it.m = 'air'; it.v.set(0, 0.5, 0); it.seg = null; }
+  }
+}
+// pre-built belt at the stand: open bay (flat) + incline up into HAY IN
+const preBay = new Seg(new THREE.Vector3(-12.6, BELT_H, SZ), new THREE.Vector3(-16, BELT_H, SZ), { pre: true, id: 'p0' });
+const preUp = new Seg(new THREE.Vector3(-16, BELT_H, SZ), new THREE.Vector3(SX + 0.9, 1.78, SZ), { pre: true, id: 'p1' });
+preBay.out = { seg: preUp, t: 0 }; preUp.out = 'sell';
+const BAY = new THREE.Vector3(-12.6, 0, SZ);
+
+// ================== HAY CLUMPS (belt / air / floor) ==================
+const MAX_ITEMS = IS_TOUCH ? 320 : 480;
+const items = [];
+const clumpGeo = (() => {
+  const parts = [];
+  for (let i = 0; i < 10; i++) { const g = new THREE.BoxGeometry(0.028, 0.028, rnd(0.3, 0.46)); const m = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rnd(-0.6, 0.6), rnd(0, 6.28), rnd(-0.4, 0.4))); m.setPosition(rnd(-0.07, 0.07), rnd(0, 0.09), rnd(-0.07, 0.07)); g.applyMatrix4(m); parts.push(g); }
+  return mergeGeometries(parts);
+})();
+const clumpIM = new THREE.InstancedMesh(clumpGeo, M(0xe9c262, 0.85, 0), MAX_ITEMS);
+clumpIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage); clumpIM.castShadow = true; clumpIM.frustumCulled = false; scene.add(clumpIM);
+{ const c = new THREE.Color(); const cols = [0xf2d27a, 0xe8bf5a, 0xd9a843, 0xf7e3a0]; for (let i = 0; i < MAX_ITEMS; i++) { c.setHex(cols[i % 4]); clumpIM.setColorAt(i, c); } }
+function addItem(o) {
+  if (items.length >= MAX_ITEMS) { // merge into nearest floor pile to stay within budget
+    let best = null, bd = 1e9; for (const it of items) if (it.m === 'floor') { const d = it.p.distanceToSquared(o.p); if (d < bd) { bd = d; best = it; } }
+    if (best) { best.n += o.n; best.needle = best.needle || o.needle; if (o.needle) S.needle.where = 'loose'; return best; }
+    S.hay += o.n; return null;
+  }
+  const it = Object.assign({ m: 'air', seg: null, t: 0, v: new THREE.Vector3(), n: 1, needle: false, src: '' }, o);
+  items.push(it); return it;
+}
+function spawnLoad(n, needle, pos, vel, src = 'hand') {
+  const pieces = Math.max(1, Math.min(10, Math.ceil(n / 14)));
+  let left = n;
+  for (let i = 0; i < pieces; i++) {
+    const k = i === pieces - 1 ? left : Math.ceil(n / pieces); left -= k; if (k <= 0) break;
+    const p = pos.clone().add(new THREE.Vector3(rnd(-0.12, 0.12), rnd(-0.05, 0.1), rnd(-0.12, 0.12)));
+    const v = vel.clone().add(new THREE.Vector3(rnd(-0.35, 0.35), rnd(-0.2, 0.3), rnd(-0.35, 0.35)).multiplyScalar(vel.length() > 0.5 ? 1 : 0.3));
+    addItem({ m: 'air', p, v, n: k, needle: needle && i === 0, src });
+  }
+}
+let earnWin = [];
+function sellItem(it) {
+  const v = it.n * PRICE * sellMult();
+  S.money += v; S.earnedTotal += v; inc('sold', it.n); earnWin.push({ t: performance.now(), v });
+  if (it.src === 'pbelt' || it.src === 'rake' || it.src === 'arm') inc('autoSold');
+  if (it.src === 'pbelt') inc('pbeltSold');
+  moneyPop(v); drawCash(v); if (Math.random() < 0.5) beep(1320 + rnd(0, 200), 0.04, 0.025, 'triangle');
+  if (it.needle) { S.needle.where = 'lost'; tip('Something metal rattled into the stand… a needle just got sold with the hay. A scanner on the belt would have caught it.', 5000); newNeedle(); }
+}
+function segBlockedAt(seg, t) { for (const it of items) if (it.m === 'belt' && it.seg === seg && Math.abs(it.t - t) < ITEM_GAP) return true; return false; }
+function landOnBelt(it) {
+  for (const s of segs) {
+    const pr = s.project(it.p);
+    if (pr.u < -0.02 || pr.u > 1.02 || pr.lat > BELT_W / 2 + 0.12) continue;
+    const t = Math.max(0.05, Math.min(s.len - 0.05, pr.t)), by = s.y(t);
+    if (it.p.y <= by + 0.1 && it.p.y > by - 0.45) { it.m = 'belt'; it.seg = s; it.t = t; if (it.src === 'hand' && !s.pre) it.src = 'pbelt'; if (it.src === 'rake') inc('rakeOnBelt'); return true; }
+  }
+  return false;
+}
+const _v = new THREE.Vector3();
+function updateItems(dt) {
+  const sp = beltSpeed();
+  // belts: sort by seg then t desc
+  const bySeg = new Map();
+  for (const it of items) if (it.m === 'belt') { if (!bySeg.has(it.seg)) bySeg.set(it.seg, []); bySeg.get(it.seg).push(it); }
+  const dead = new Set();
+  for (const [seg, list] of bySeg) {
+    list.sort((a, b) => b.t - a.t);
+    let prevT = Infinity;
+    for (const it of list) {
+      let nt = Math.min(it.t + sp * dt, prevT - ITEM_GAP);
+      if (nt < it.t) nt = it.t;
+      if (nt >= seg.len) {
+        if (seg.out === 'sell') { sellItem(it); dead.add(it); continue; }
+        else if (seg.out && seg.out.seg) {
+          if (!segBlockedAt(seg.out.seg, seg.out.t)) { it.seg = seg.out.seg; it.t = seg.out.t + 0.01; if (it.src === 'hand' && !it.seg.pre) it.src = 'pbelt'; prevT = Infinity; continue; }
+          nt = seg.len; // jam
+        } else { it.m = 'air'; it.p.copy(seg.at(seg.len)); it.p.y += 0.12; it.v.copy(seg.dir).multiplyScalar(sp); it.v.y += 0.6; it.seg = null; continue; }
+      }
+      it.t = nt; prevT = nt;
+    }
+  }
+  for (const it of items) {
+    if (dead.has(it)) continue;
+    if (it.m === 'belt') { it.p.copy(it.seg.at(it.t)); it.p.y += 0.02; }
+    else if (it.m === 'air') {
+      it.v.y -= 12 * dt; it.p.addScaledVector(it.v, dt);
+      it.p.x = Math.max(-WX + 0.3, Math.min(WX - 0.3, it.p.x)); it.p.z = Math.max(-WZ + 0.3, Math.min(WZ - 0.3, it.p.z));
+      // HAY IN hopper
+      if (Math.abs(it.p.x - (SX + 0.1)) < 0.85 && Math.abs(it.p.z - SZ) < 0.8 && it.p.y < 2.0 && it.v.y < 0) { sellItem(it); dead.add(it); continue; }
+      // generator hopper
+      let fed = false;
+      for (const b of builds) if (b.type === 'generator' && Math.hypot(it.p.x - b.x, it.p.z - b.z) < 0.85 && it.p.y < 2.2 && it.p.y > 1.0 && it.v.y < 0) { b.fuel = Math.min(600, b.fuel + it.n); fed = true; inc('fed'); break; }
+      if (fed) { dead.add(it); continue; }
+      if (it.v.y < 0 && landOnBelt(it)) continue;
+      if (Math.hypot(it.p.x - HC.x, it.p.z - HC.z) < pileRAt(Math.max(0, it.p.y)) - 0.2) { S.hay += it.n; S.picked -= it.n; if (it.needle) { S.needle.where = 'pile'; } dead.add(it); continue; }
+      if (it.p.y <= 0.03) {
+        it.p.y = 0.02; it.m = 'floor'; it.v.set(0, 0, 0);
+        for (const o of items) if (o !== it && o.m === 'floor' && !dead.has(o) && Math.abs(o.p.x - it.p.x) < 0.55 && Math.abs(o.p.z - it.p.z) < 0.55) { o.n += it.n; o.needle = o.needle || it.needle; dead.add(it); break; }
+      }
+    }
+  }
+  if (dead.size) for (let i = items.length - 1; i >= 0; i--) if (dead.has(items[i])) items.splice(i, 1);
+  // render
+  const d = new THREE.Object3D();
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i]; const s = Math.min(2.1, 0.55 + 0.45 * Math.log10(1 + it.n));
+    d.position.copy(it.p); d.rotation.set(0, (i * 2.399) % 6.28, 0);
+    if (it.m === 'floor') d.scale.set(s * 1.25, s * 0.45, s * 1.25); else d.scale.set(s, s * 0.9, s);
+    if (it.m === 'belt' && it.seg) d.rotation.x = -Math.atan2(it.seg.b.y - it.seg.a.y, it.seg.hlen) * 0;
+    d.updateMatrix(); clumpIM.setMatrixAt(i, d.matrix);
+  }
+  clumpIM.count = items.length; clumpIM.instanceMatrix.needsUpdate = true;
+  for (const t of beltTopMats) t.offset.y += sp * dt / 1.1;
+}
+
+// ================== MACHINES ==================
+const ghostOK = new THREE.MeshBasicMaterial({ color: 0x3dff52, transparent: true, opacity: 0.55, depthWrite: false });
+const ghostBad = new THREE.MeshBasicMaterial({ color: 0xff3a2a, transparent: true, opacity: 0.55, depthWrite: false });
+function warnTri() { return new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.25), new THREE.MeshBasicMaterial({ map: signTex('⚠', { w: 64, h: 58, bg: '#e8c21e', fg: '#111', fs: 48, bw: 2 }), transparent: true })); }
+function makeModel(type) {
+  const g = new THREE.Group(); const p = {};
+  if (type === 'generator') {
+    box(1.7, 1.3, 1.3, M(0x3f4a3c, 0.6, 0.4), 0, 0.65, 0, g); box(1.1, 0.3, 0.9, matBlack, 0, 1.45, 0, g);
+    const fire = box(0.7, 0.45, 0.05, new THREE.MeshBasicMaterial({ color: 0xff7a1a }), 0, 0.55, 0.67, g); p.fire = fire;
+    cyl(0.16, 0.16, 2.6, matBlack, 0.55, 2.3, -0.35, g); p.chim = new THREE.Vector3(0.55, 3.6, -0.35);
+    const w = warnTri(); w.position.set(-0.5, 0.95, 0.66); g.add(w);
+  } else if (type === 'pole') {
+    cyl(0.09, 0.12, 4.6, matWood, 0, 2.3, 0, g); box(1.0, 0.1, 0.1, matWood, 0, 4.3, 0, g);
+    for (const s of [-1, 1]) cyl(0.04, 0.04, 0.14, M(0xdddddd), s * 0.4, 4.4, 0, g);
+  } else if (type === 'rake') {
+    box(1.6, 0.35, 1.4, matBlack, 0, 0.2, 0, g); box(0.5, 0.7, 0.5, M(0x2a2a2a, 0.6, 0.5), 0, 0.7, -0.4, g);
+    const pist = new THREE.Group(); pist.position.set(0, 0.55, 0); g.add(pist); p.pist = pist;
+    const rod = cyl(0.07, 0.07, 1.2, matSteel, 0, 0, 0.6, pist); rod.rotation.x = Math.PI / 2;
+    const head = new THREE.Group(); head.position.set(0, 0, 1.2); pist.add(head); p.head = head;
+    box(1.6, 0.18, 0.14, matOrange, 0, 0, 0, head);
+    for (let i = -3; i <= 3; i++) box(0.05, 0.28, 0.05, matSteel, i * 0.24, -0.18, 0.04, head);
+    const tray = box(1.2, 0.05, 0.9, matSteel, 0, 0.95, -0.35, g); tray.rotation.x = -0.5;
+    const w = warnTri(); w.position.set(0, 0.2, 0.71); g.add(w);
+  } else if (type === 'arm') {
+    cyl(0.5, 0.6, 0.35, matBlack, 0, 0.18, 0, g, 16); cyl(0.42, 0.42, 0.12, matOrange, 0, 0.4, 0, g, 16);
+    const tur = new THREE.Group(); tur.position.y = 0.46; g.add(tur); p.tur = tur;
+    cyl(0.28, 0.32, 0.55, matOrange, 0, 0.28, 0, tur, 12);
+    const w = warnTri(); w.position.set(0, 0.3, 0.33); tur.add(w);
+    const sh = new THREE.Group(); sh.position.set(0, 0.6, 0); tur.add(sh); p.sh = sh;
+    box(0.22, 0.22, 1.5, matOrange, 0, 0, 0.7, sh); box(0.26, 0.26, 0.26, matBlack, 0, 0, 0, sh);
+    const el = new THREE.Group(); el.position.set(0, 0, 1.45); sh.add(el); p.el = el;
+    box(0.18, 0.18, 1.3, M(0x2a2a2a, 0.5, 0.5), 0, 0, 0.6, el);
+    const bucket = box(0.4, 0.25, 0.3, matSteel, 0, -0.12, 1.25, el); p.bucket = bucket;
+    const hay = new THREE.Mesh(clumpGeo, matStraw); hay.position.set(0, 0.02, 1.25); hay.scale.setScalar(1.2); hay.visible = false; el.add(hay); p.hay = hay;
+  } else if (type === 'scanner') {
+    for (const s of [-1, 1]) box(0.12, 1.5, 0.3, M(0x39414a, 0.5, 0.6), s * 0.72, 0.75 + 0.3, 0, g);
+    box(1.6, 0.25, 0.4, M(0x39414a, 0.5, 0.6), 0, 1.9, 0, g);
+    const lamp = box(0.9, 0.06, 0.1, new THREE.MeshBasicMaterial({ color: 0x3dff52 }), 0, 1.76, 0, g); p.lamp = lamp;
+    const lab = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.2), new THREE.MeshBasicMaterial({ map: signTex('SCANNER MK1', { w: 256, h: 56, fs: 40, bg: '#222', fg: '#f2d45c', bw: 2 }) })); lab.position.set(0, 1.9, 0.21); g.add(lab);
+  } else if (type === 'cabinet') {
+    box(2.2, 1.9, 0.6, M(0x5a3620, 0.8), 0, 0.95, 0, g);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 5; c++) { box(0.36, 0.34, 0.05, M(r * 5 + c < 8 ? 0x2b180c : 0x3a2414, 0.8), -0.8 + c * 0.4, 0.35 + r * 0.42, 0.31, g); box(0.2, 0.06, 0.02, M(0xe9e2d0), -0.8 + c * 0.4, 0.42 + r * 0.42, 0.34, g); }
+  }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  return { g, p };
+}
+class Bld {
+  constructor(o) {
+    Object.assign(this, { id: 'b' + nextId++, on: true, fuel: 0, throwD: 4, timer: 0, anim: 0, work: 0 }, o);
+    if (this.type === 'belt') return;
+    const { g, p } = makeModel(this.type); this.g = g; this.p = p;
+    g.position.set(this.x, this.y || 0, this.z); g.rotation.y = this.rot; scene.add(g);
+    g.traverse(m => { if (m.isMesh) { m.userData.bld = this; pickables.push(m); } });
+    if (this.type === 'rake') { const ring = new THREE.Mesh(new THREE.RingGeometry(0.35, 0.5, 24), new THREE.MeshBasicMaterial({ color: 0xffd23a, transparent: true, opacity: 0.8 })); ring.rotation.x = -Math.PI / 2; scene.add(ring); this.mark = ring; this.placeMark(); }
+  }
+  fwd() { return new THREE.Vector3(Math.sin(this.rot), 0, Math.cos(this.rot)); }
+  placeMark() { if (!this.mark) return; const f = this.fwd(); this.mark.position.set(this.x - f.x * (this.throwD + 0.6), 0.03, this.z - f.z * (this.throwD + 0.6)); }
+  ser() {
+    if (this.type === 'belt') return { type: 'belt', id: this.seg.id, a: this.seg.a.toArray(), b: this.seg.b.toArray(), cost: this.cost, out: this.seg.out === 'sell' ? 'sell' : this.seg.out ? { id: this.seg.out.seg.id, t: this.seg.out.t } : null };
+    return { type: this.type, x: this.x, y: this.y || 0, z: this.z, rot: this.rot, cost: this.cost, on: this.on, fuel: this.fuel, throwD: this.throwD };
+  }
+  dispose() {
+    if (this.type === 'belt') this.seg.dispose();
+    else { scene.remove(this.g); for (let k = pickables.length - 1; k >= 0; k--) if (pickables[k].userData.bld === this) pickables.splice(k, 1); if (this.mark) scene.remove(this.mark); }
+    builds.splice(builds.indexOf(this), 1); rebuildWires();
+  }
+}
+function addBelt(a, b, cost, id) { const seg = new Seg(a, b, { id }); const bl = new Bld({ type: 'belt', seg, cost }); seg.bld = bl; builds.push(bl); return bl; }
+// restore saved builds
+{
+  const saved = S.builds || []; const byId = { p0: preBay, p1: preUp };
+  for (const d of saved) if (d.type === 'belt') { const bl = addBelt(new THREE.Vector3().fromArray(d.a), new THREE.Vector3().fromArray(d.b), d.cost, d.id); byId[d.id] = bl.seg; }
+  for (const d of saved) if (d.type === 'belt' && d.out) { const s = byId[d.id]; if (d.out === 'sell') s.out = 'sell'; else if (byId[d.out.id]) s.out = { seg: byId[d.out.id], t: d.out.t }; }
+  for (const s of segs) { const m = /^s(\d+)$/.exec(s.id); if (m) nextId = Math.max(nextId, +m[1] + 1); }
+  for (const d of saved) if (d.type !== 'belt' && BUILD[d.type]) builds.push(new Bld(d));
+}
+
+// ================== POWER ==================
+let wireGroup = new THREE.Group(); scene.add(wireGroup);
+const powered = new Set(); const genLoad = new Map();
+const d2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+function rebuildWires() {
+  scene.remove(wireGroup); wireGroup = new THREE.Group(); scene.add(wireGroup);
+  const mat = new THREE.LineBasicMaterial({ color: 0x111111 });
+  const poles = builds.filter(b => b.type === 'pole');
+  for (const p of poles) for (const b of builds) {
+    if (b === p || b.type === 'belt' || b.type === 'cabinet') continue;
+    const lim = b.type === 'pole' ? 12 : 6; if (d2(p, b) > lim || (b.type === 'pole' && b.id < p.id)) continue;
+    const h = b.type === 'pole' ? 4.4 : b.type === 'generator' ? 1.4 : 0.9;
+    const pts = []; for (let i = 0; i <= 8; i++) { const t = i / 8; pts.push(new THREE.Vector3(p.x + (b.x - p.x) * t, 4.4 + (h - 4.4) * t - Math.sin(t * Math.PI) * 0.4, p.z + (b.z - p.z) * t)); }
+    wireGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+  }
+}
+rebuildWires();
+function updatePower() {
+  powered.clear(); genLoad.clear();
+  const gens = builds.filter(b => b.type === 'generator' && b.on && b.fuel > 0);
+  const poles = builds.filter(b => b.type === 'pole');
+  // poles connected to a generator (chain through poles within 12 m)
+  const live = new Map();
+  const q = [];
+  for (const p of poles) { const g = gens.find(g => d2(g, p) <= 6); if (g) { live.set(p, g); q.push(p); } }
+  while (q.length) { const p = q.shift(); for (const o of poles) if (!live.has(o) && d2(o, p) <= 12) { live.set(o, live.get(p)); q.push(o); } }
+  for (const b of builds) {
+    if (!['rake', 'arm', 'scanner'].includes(b.type)) continue;
+    let g = gens.find(g => d2(g, b) <= 6);
+    if (!g) for (const [p, gg] of live) if (d2(p, b) <= 6) { g = gg; break; }
+    if (g) { powered.add(b); if (b.on) genLoad.set(g, (genLoad.get(g) || 0) + 1); }
+  }
+}
+setInterval(updatePower, 500); updatePower();
+
+// ================== PLAYER / INPUT ==================
+const P = { pos: new THREE.Vector3(S.player.x, 1.7, S.player.z), yaw: S.player.yaw, pitch: S.player.pitch, bob: 0 };
+const keys = {}; const mv = { x: 0, y: 0 };
+let started = false, lmbHeld = false, xHeld = false, sprintBtn = false, scoopT = 0, xT = 0;
+let buildType = null, beltStart = null, beltFrom = null, placeD = 4.5, placeRot = 0;
+const ray = new THREE.Raycaster();
+const fwd = () => new THREE.Vector3(-Math.sin(P.yaw) * Math.cos(P.pitch), Math.sin(P.pitch), -Math.cos(P.yaw) * Math.cos(P.pitch));
+const fwdXZ = () => new THREE.Vector3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw));
+const anyPanel = () => ['tree', 'cat', 'shop', 'rakep', 'cabp', 'found', 'gate'].some(id => $(id).classList.contains('open'));
+function openPanel(id) { $(id).classList.add('open'); if (document.pointerLockElement) document.exitPointerLock(); lmbHeld = false; }
+function closePanel(id) { $(id).classList.remove('open'); }
+
+// what the crosshair points at
+let aim = { kind: null };
+function updateAim() {
+  ray.setFromCamera({ x: 0, y: 0 }, camera); ray.far = 12;
+  const targets = [pileMesh, clumpIM, ...pickables, ...groundToolMeshes()];
+  const hits = ray.intersectObjects(targets, false);
+  aim = { kind: null };
+  for (const h of hits) {
+    const o = h.object;
+    if (o === clumpIM) { const it = items[h.instanceId]; if (it && it.m !== 'air') { aim = { kind: 'item', it, d: h.distance, p: h.point }; break; } continue; }
+    if (o.userData.gtool) { aim = { kind: 'gtool', gt: o.userData.gtool, d: h.distance, p: h.point }; break; }
+    if (o === pileMesh) { aim = { kind: 'pile', d: h.distance, p: h.point }; break; }
+    if (o.userData.seg) { aim = { kind: 'belt', seg: o.userData.seg, d: h.distance, p: h.point }; break; }
+    if (o.userData.bld) { aim = { kind: 'bld', b: o.userData.bld, d: h.distance, p: h.point }; break; }
+  }
+  // stand hopper / bay proximity
+  aim.nearBay = P.pos.distanceTo(new THREE.Vector3(BAY.x - 1.2, 1.7, BAY.z)) < 3.4;
+  aim.nearShop = Math.hypot(P.pos.x - (SHOP.x + 1.2), P.pos.z - SHOP.z) < 3.2;
+}
+
+// ================== TOOLS / VIEWMODEL ==================
+const vm = new THREE.Group(); vm.position.set(0.38, -0.36, -0.72); camera.add(vm);
+let vmHay = null, vmSwing = 0;
+function buildVM() {
+  while (vm.children.length) vm.remove(vm.children[0]);
+  const t = S.tool; const skin = M(0xd9a27a, 0.8);
+  const bladeCol = { toyshovel: 0xf3c51c, spade: 0x4a4d52, pitchfork: 0x6a6d72, bucket: 0x7a4a2a, wheelbarrow: 0x4a6a8a, detector: 0x2a2a2a }[t];
+  if (t === 'hand') {
+    const hg = new THREE.Group(); hg.position.set(0.02, -0.04, 0.0); hg.rotation.set(-0.35, 0.25, 0.15); hg.scale.setScalar(1.25); vm.add(hg);
+    box(0.085, 0.035, 0.1, skin, 0, 0, 0, hg, false); box(0.07, 0.07, 0.12, M(0x3a4a6a, 0.9), 0, -0.005, 0.1, hg, false);
+    for (let i = 0; i < 4; i++) { const f = box(0.017, 0.02, 0.065, skin, -0.03 + i * 0.02, 0.006, -0.075, hg, false); f.rotation.x = 0.5; }
+    const th = box(0.02, 0.02, 0.05, skin, 0.05, 0.005, -0.02, hg, false); th.rotation.y = -0.6;
+    vmHay = new THREE.Mesh(clumpGeo, matStraw); vmHay.position.set(0, 0.03, -0.08); hg.add(vmHay); }
+  else if (t === 'detector') { const r = cyl(0.015, 0.015, 0.9, matBlack, 0, 0, -0.2, vm); r.rotation.x = 1.1; const d = cyl(0.14, 0.14, 0.03, M(0x333333), 0, -0.3, -0.62, vm, 20); vmHay = null; box(0.1, 0.08, 0.14, M(S.detOn ? 0x3dff52 : 0x444444), 0, 0.12, 0.1, vm, false); }
+  else if (t === 'bucket') { cyl(0.16, 0.12, 0.26, M(bladeCol, 0.8), 0, 0, -0.1, vm, 14); vmHay = new THREE.Mesh(clumpGeo, matStraw); vmHay.position.set(0, 0.1, -0.1); vm.add(vmHay); }
+  else if (t === 'wheelbarrow') { box(0.7, 0.2, 0.8, M(bladeCol, 0.6, 0.4), 0, -0.1, -0.5, vm, false); vmHay = new THREE.Mesh(clumpGeo, matStraw); vmHay.position.set(0, 0.02, -0.5); vm.add(vmHay); }
+  else { const h = cyl(0.02, 0.02, 0.9, matWood, 0, 0.05, 0.1, vm, 8); h.rotation.x = 1.25; box(0.26, 0.02, 0.3, M(bladeCol, 0.5, 0.5), 0, -0.1, -0.35, vm, false); vmHay = new THREE.Mesh(clumpGeo, matStraw); vmHay.position.set(0, -0.06, -0.35); vm.add(vmHay); }
+}
+function setTool(t) { if (!S.slots.includes(t)) return; if (S.tool !== t) { if (S.load > 0) { dropLoadAtFeet(); } S.tool = t; S.detOn = false; buildVM(); renderSlots(); if (t !== 'hand') inc('heldTool'); } }
+// ground tools
+const gtMeshes = new Map();
+function groundToolMeshes() { return [...gtMeshes.values()]; }
+function syncGroundTools() {
+  for (const [gt, m] of gtMeshes) if (!S.groundTools.includes(gt)) { scene.remove(m); gtMeshes.delete(gt); }
+  for (const gt of S.groundTools) {
+    let m = gtMeshes.get(gt);
+    if (!m) { m = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.08, 1.1), M(gt.t === 'toyshovel' ? 0xf3c51c : 0x6b6e73, 0.6, 0.3)); m.castShadow = true; m.userData.gtool = gt; scene.add(m); gtMeshes.set(gt, m); }
+    m.position.set(gt.x, 0.05, gt.z); m.rotation.y = gt.r || 0;
+  }
+}
+function putToolDown(throwIt) {
+  if (S.tool === 'hand') { if (S.load > 0) dropLoadAtFeet(); return; }
+  const f = fwdXZ(); const d = throwIt ? 6 : 1.2; const t = S.tool;
+  if (S.load > 0) dropLoadAtFeet();
+  S.groundTools.push({ t, x: Math.max(-WX + 1, Math.min(WX - 1, P.pos.x + f.x * d)), z: Math.max(-WZ + 1, Math.min(WZ - 1, P.pos.z + f.z * d)), r: P.yaw });
+  S.slots = S.slots.filter(s => s !== t); S.tool = 'hand'; inc('toolDown'); buildVM(); renderSlots(); syncGroundTools(); save();
+}
+function pickGroundTool(gt) { S.groundTools = S.groundTools.filter(g => g !== gt); if (!S.slots.includes(gt.t)) S.slots.push(gt.t); inc('toolUp'); syncGroundTools(); setTool(gt.t); save(); }
+
+// ================== ACTIONS ==================
+function dropLoadAtFeet() { if (S.load <= 0) return; const f = fwdXZ(); spawnLoad(S.load, S.loadNeedle, P.pos.clone().add(f.multiplyScalar(0.7)).setY(1.0), new THREE.Vector3(0, 0, 0), 'hand'); S.load = 0; S.loadNeedle = false; }
+function tipLoad(speed = 3.5, up = 1.2) {
+  if (S.load <= 0) return false;
+  const f = fwd(); let pos = camera.position.clone().addScaledVector(f, 0.6); pos.y -= 0.25; let vel = f.clone().multiplyScalar(speed); vel.y += up;
+  if (speed < 5 && (aim.kind === 'belt') && aim.d < reach() + 1.5) { pos = aim.p.clone(); pos.y += 0.45; vel.set(0, 0, 0); }
+  else if (speed < 5 && aim.kind === 'bld' && aim.b.type === 'generator' && aim.d < reach() + 1.5) { pos = new THREE.Vector3(aim.b.x, 2.1, aim.b.z); vel.set(0, 0, 0); }
+  spawnLoad(S.load, S.loadNeedle, pos, vel, 'hand'); S.load = 0; S.loadNeedle = false; beep(300, 0.05, 0.03, 'sine'); return true;
+}
+function dropOnBelt() { // E / LMB at the open bay or at a belt
+  if (S.load <= 0) return false;
+  let seg = null, t = 0;
+  if (aim.kind === 'belt' && aim.d < reach() + 1.5) { seg = aim.seg; t = Math.max(0.1, Math.min(seg.len - 0.1, seg.project(aim.p).t)); }
+  else if (aim.nearBay) { seg = preBay; t = 0.3; }
+  if (!seg) return false;
+  const p = seg.at(t); p.y += 0.5; spawnLoad(S.load, S.loadNeedle, p, new THREE.Vector3(0, -0.5, 0), 'hand'); S.load = 0; S.loadNeedle = false; beep(300, 0.05, 0.03, 'sine'); return true;
+}
+function scoop() {
+  const tl = TOOLS[S.tool], cap = toolCap(S.tool);
+  if (S.tool === 'detector') { detectorDig(); return; }
+  if (S.load >= cap) { flashLoad('FULL'); return; }
+  const want = Math.min(S.tool === 'hand' ? cap : tl.per, cap - S.load);
+  if (aim.kind === 'pile' && aim.d < reach()) {
+    const r = takeFromPile(want, aim.p); if (r.n <= 0) return;
+    S.load += r.n; if (r.needle) S.loadNeedle = true; inc('scoops'); if (S.tool !== 'hand') inc('toolScoops');
+    vmSwing = 1; beep(180 + rnd(0, 60), 0.03, 0.02, 'sawtooth');
+  } else if (aim.kind === 'item' && aim.d < reach()) {
+    const it = aim.it; const k = Math.min(want, it.n); it.n -= k; S.load += k; if (it.needle && it.n <= 0) S.loadNeedle = true; if (it.needle && it.n <= 0) it.needle = false;
+    if (it.n <= 0) items.splice(items.indexOf(it), 1); inc('scoops'); vmSwing = 1;
+  } else return;
+  if (S.loadNeedle && (S.owned.detector)) { S.loadNeedle = false; foundNeedle('Your metal detector screamed at your own load.'); }
+}
+function detectorDig() {
+  if (!S.detOn) { tip('Press RMB to switch the detector on.'); return; }
+  const np = needleWorld(); if (!np) return;
+  if (Math.hypot(np.x - P.pos.x, np.z - P.pos.z) < 2.2) { const where = S.needle.where; if (where === 'pile') takeFromPile(30, np); else { const it = items.find(i => i.needle); if (it) it.needle = false; } foundNeedle('You dug right where the detector screamed.'); }
+  else tip('Nothing here. Follow the beeps — faster means closer.');
+}
+function needleWorld() {
+  if (!S.needle) return null;
+  if (S.needle.where === 'pile') return needlePilePos();
+  const it = items.find(i => i.needle); if (it) return it.p;
+  if (S.loadNeedle) return P.pos;
+  return null;
+}
+function foundNeedle(how) {
+  const type = NEEDLE_TYPES[S.found.length % NEEDLE_TYPES.length];
+  S.found.push(type); newNeedle(); inc('needles');
+  $('found-h').textContent = S.found.length === 1 ? 'MY FIRST NEEDLE!' : 'NEEDLE FOUND';
+  $('found-p').textContent = how + ' It is a ' + type.toLowerCase() + '. ' + (builds.some(b => b.type === 'cabinet') ? 'It goes into its drawer in the needle cabinet.' : 'Build a needle cabinet to keep it.') + ' (' + S.found.length + ' / 8 kinds)';
+  openPanel('found'); beep(880, 0.15, 0.08, 'triangle'); setTimeout(() => beep(1320, 0.25, 0.08, 'triangle'), 160); save();
+}
+let loadFlashT = 0; function flashLoad(txt) { const el = $('load'); el.textContent = txt; el.style.opacity = 1; clearTimeout(loadFlashT); loadFlashT = setTimeout(() => el.style.opacity = S.load > 0 ? 1 : 0, 700); }
+
+function onLMB() {
+  if (!started || anyPanel()) return;
+  if (buildType) { placeBuild(); return; }
+  if (S.load > 0 && (aim.kind === 'belt' && aim.d < reach() + 1.5 || (aim.nearBay && aim.kind !== 'pile'))) { dropOnBelt(); return; }
+  scoop(); scoopT = 0;
+}
+function onRMB() {
+  if (!started || anyPanel()) return;
+  if (buildType) { cancelBuild(); return; }
+  if (S.tool === 'detector') { S.detOn = !S.detOn; inc('detToggle'); buildVM(); beep(S.detOn ? 1200 : 500, 0.07, 0.05); return; }
+  if (tipLoad()) inc('tips');
+}
+function onE() {
+  if (!started) return;
+  if (anyPanel()) { for (const id of ['shop', 'rakep', 'cabp']) closePanel(id); return; }
+  if (buildType) return;
+  if (aim.kind === 'gtool' && aim.d < 3.5) { pickGroundTool(aim.gt); return; }
+  if (aim.kind === 'bld' && aim.d < 5) {
+    const b = aim.b;
+    if (b.type === 'rake') { openRake(b); return; }
+    if (b.type === 'cabinet') { openCabinet(); inc('cabOpen'); return; }
+    if (b.type === 'generator' && S.load > 0) { b.fuel = Math.min(600, b.fuel + S.load); S.load = 0; S.loadNeedle = false; inc('fed'); tip('Hay in the firebox. The generator burns it for power.'); return; }
+    b.on = !b.on; tip(BUILD[b.type].name + (b.on ? ' is on.' : ' is off. A machine that is off uses no power.')); updatePower(); return;
+  }
+  if (aim.nearShop) { openShop(); return; }
+  if (S.load > 0) { if (!dropOnBelt()) dropLoadAtFeet(); inc('dropAll'); return; }
+}
+function onF() { if (!started || anyPanel() || buildType) return; if (S.load > 0) { tipLoad(9, 2.2); inc('throws'); } else if (S.tool !== 'hand') putToolDown(true); }
+function onQ() { if (!started || anyPanel()) return; if (buildType) { cancelBuild(); return; } putToolDown(false); }
+
+// ================== BUILD MODE ==================
+let ghost = null, ghostBelt = null, ghostValid = false, ghostInfo = null;
+function clearGhost() { if (ghost) { scene.remove(ghost); ghost = null; } if (ghostBelt) { scene.remove(ghostBelt); ghostBelt = null; } }
+function equipBuild(type) {
+  closePanel("cat"); cancelBuild(); buildType = type; beltStart = null; beltFrom = null; placeRot = P.yaw + Math.PI; placeD = 4.5;
+  if (type !== 'belt') { const { g } = makeModel(type); g.traverse(o => { if (o.isMesh) { o.material = ghostOK; o.castShadow = false; } }); ghost = g; scene.add(g); }
+  inc('equipBuild'); showTouchBuild(true);
+}
+function cancelBuild() { buildType = null; beltStart = null; beltFrom = null; clearGhost(); $('blabel').textContent = ''; showTouchBuild(false); }
+function ghostPos() { const f = fwdXZ(); return new THREE.Vector3(P.pos.x + f.x * placeD, 0, P.pos.z + f.z * placeD); }
+const snapG = v => Math.round(v * 2) / 2;
+function insideYard(p, m = 0.8) { return Math.abs(p.x) < WX - m && Math.abs(p.z) < WZ - m; }
+function nearStand(p) { return (p.x < SX + 1.6 && Math.abs(p.z - SZ) < 1.6) || (p.x < SHOP.x + 2.2 && Math.abs(p.z - SHOP.z) < 2.6); }
+function beltEndInfo(p, exclude) {
+  let best = null;
+  for (const s of segs) {
+    if (s === exclude) continue;
+    const pr = s.project(p);
+    if (pr.lat < 1.25 && pr.t > 0.25 && pr.t < s.len - 0.1) { if (!best || pr.lat < best.lat) best = { seg: s, t: pr.t, lat: pr.lat }; }
+  }
+  return best;
+}
+function updateGhost() {
+  if (!buildType) return;
+  const def = BUILD[buildType];
+  let gp = ghostPos(); gp.x = snapG(gp.x); gp.z = snapG(gp.z);
+  if (buildType === 'belt') {
+    let a, b, join = null, from = null;
+    if (!beltStart) {
+      for (const s of segs) if (!s.out && d2(s.b, gp) < 1.4) { from = s; break; }
+      a = from ? from.b.clone() : new THREE.Vector3(gp.x, BELT_H, gp.z); b = a.clone().add(fwdXZ().multiplyScalar(1.0)); b.y = a.y;
     } else {
-      m.visible = false;
+      a = beltStart.clone(); from = beltFrom;
+      join = beltEndInfo(gp, from);
+      b = join ? join.seg.at(join.t) : new THREE.Vector3(gp.x, a.y, gp.z);
     }
+    const len = a.distanceTo(b), cost = Math.round((5 + 8 * len) * 100) / 100;
+    let ok = len >= (beltStart ? 0.8 : 0) && len <= 30 && insideYard(a) && insideYard(b) && Math.abs(b.y - a.y) / Math.max(0.1, len) < 0.5;
+    let reason = '';
+    for (let i = 0; i <= 10 && ok; i++) { const p = a.clone().lerp(b, i / 10); if (Math.hypot(p.x - HC.x, p.z - HC.z) < pileRAt(p.y) + 0.2) { ok = false; reason = 'blocked by the haystack'; } if (nearStand(p) && i < 10) { ok = false; reason = 'in the way of the stand'; } }
+    if (beltStart && join && join.seg === from) { ok = false; reason = 'already joined here - use a splitter to branch'; }
+    if (beltStart && S.money < cost) { ok = false; reason = 'not enough money'; }
+    ghostValid = ok; ghostInfo = { a, b, join, from, cost, len };
+    if (ghostBelt) scene.remove(ghostBelt);
+    const L = Math.max(0.3, len), d = new THREE.Vector3().subVectors(b, a);
+    ghostBelt = new THREE.Group(); ghostBelt.position.copy(a); ghostBelt.rotation.order = 'YXZ'; ghostBelt.rotation.y = Math.atan2(d.x, d.z); ghostBelt.rotation.x = -Math.atan2(d.y, Math.hypot(d.x, d.z));
+    const gm = new THREE.Mesh(new THREE.BoxGeometry(BELT_W + 0.14, 0.3, L), ok ? ghostOK : ghostBad); gm.position.set(0, -0.08, L / 2); ghostBelt.add(gm);
+    const ct = chevTexBase.clone(); ct.needsUpdate = true; ct.repeat.set(1, L / 1.1);
+    const cm = new THREE.Mesh(new THREE.PlaneGeometry(BELT_W * 0.9, L), new THREE.MeshBasicMaterial({ map: ct, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false })); cm.rotation.x = -Math.PI / 2; cm.position.set(0, 0.08, L / 2); ghostBelt.add(cm);
+    scene.add(ghostBelt);
+    const lab = $('blabel'); lab.className = ok ? '' : 'bad';
+    lab.textContent = beltStart ? (ok ? `${len.toFixed(1)} m   $${cost.toFixed(2)}${join ? '   ⤷ joins belt' : ''}` : reason || 'can\'t place here') : (from ? 'continue this belt' : 'Conveyor Belt · $8 per metre');
+  } else {
+    if (def.onBelt) { const j = beltEndInfo(gp, null) || (() => { let best = null; for (const s of segs) { const pr = s.project(gp); if (pr.lat < 1.5 && pr.u >= 0 && pr.u <= 1 && (!best || pr.lat < best.lat)) best = { seg: s, t: pr.t, lat: pr.lat }; } return best; })(); if (j) { const p = j.seg.at(j.t); gp.set(p.x, 0, p.z); placeRot = Math.atan2(j.seg.dir.x, j.seg.dir.z) + Math.PI / 2; ghostInfo = { belt: j }; } else ghostInfo = { belt: null }; }
+    ghost.position.copy(gp); ghost.rotation.y = placeRot;
+    const r = def.r || 0.5;
+    let ok = insideYard(gp) && !nearStand(gp) && S.money >= def.price;
+    let reason = S.money < def.price ? 'not enough money' : '';
+    if (Math.hypot(gp.x - HC.x, gp.z - HC.z) < PILE_R * pileS + r - 0.3) { ok = false; reason = 'blocked by the haystack'; }
+    for (const b of builds) if (b.type !== 'belt' && d2(b, gp) < r + (BUILD[b.type].r || 0.5) && !(def.onBelt)) { ok = false; reason = 'something is in the way'; }
+    if (def.onBelt && !ghostInfo.belt) { ok = false; reason = 'put it on a belt'; }
+    if (!def.onBelt && buildType !== 'pole') for (const s of segs) { const pr = s.project(gp); if (pr.u > -0.05 && pr.u < 1.05 && pr.lat < r + 0.35) { ok = false; reason = 'on top of a belt'; } }
+    ghostValid = ok; ghost.traverse(o => { if (o.isMesh) o.material = ok ? ghostOK : ghostBad; });
+    const lab = $('blabel'); lab.className = ok ? '' : 'bad'; lab.textContent = ok ? `${def.name}   $${def.price}` : reason;
   }
 }
-
-// Joystick
-const joyBase = document.getElementById('joy-base');
-const joyKnob = document.getElementById('joy-knob');
-const joyZone = document.getElementById('joy-zone');
-let joyActive = false;
-let joyId = null;
-const JOY_MAX = 42;
-
-function setKnob(dx, dy) {
-  const len = Math.hypot(dx, dy) || 1;
-  const cl = Math.min(len, JOY_MAX);
-  const nx = (dx / len) * cl;
-  const ny = (dy / len) * cl;
-  joyKnob.style.transform = `translate(${nx}px, ${ny}px)`;
-  moveInput.x = nx / JOY_MAX;
-  moveInput.y = -ny / JOY_MAX;
-}
-function resetJoy() {
-  joyActive = false;
-  joyId = null;
-  joyKnob.style.transform = 'translate(0,0)';
-  moveInput.x = 0;
-  moveInput.y = 0;
-}
-
-joyZone.addEventListener('pointerdown', (e) => {
-  if (!started) return;
-  e.preventDefault();
-  joyActive = true;
-  joyId = e.pointerId;
-  joyZone.setPointerCapture(e.pointerId);
-  const rect = joyBase.getBoundingClientRect();
-  setKnob(e.clientX - (rect.left + rect.width / 2), e.clientY - (rect.top + rect.height / 2));
-});
-joyZone.addEventListener('pointermove', (e) => {
-  if (!joyActive || e.pointerId !== joyId) return;
-  const rect = joyBase.getBoundingClientRect();
-  setKnob(e.clientX - (rect.left + rect.width / 2), e.clientY - (rect.top + rect.height / 2));
-});
-joyZone.addEventListener('pointerup', resetJoy);
-joyZone.addEventListener('pointercancel', resetJoy);
-
-const lookZone = document.getElementById('look-zone');
-const LOOK_SENS = 0.0045;
-lookZone.addEventListener('pointerdown', (e) => {
-  if (!started) return;
-  if (e.target === btnInteract || btnInteract.contains(e.target)) return;
-  lookDragging = true;
-  lastLookX = e.clientX;
-  lastLookY = e.clientY;
-  lookZone.setPointerCapture(e.pointerId);
-});
-lookZone.addEventListener('pointermove', (e) => {
-  if (!lookDragging) return;
-  const dx = e.clientX - lastLookX;
-  const dy = e.clientY - lastLookY;
-  lastLookX = e.clientX;
-  lastLookY = e.clientY;
-  player.yaw -= dx * LOOK_SENS;
-  player.pitch -= dy * LOOK_SENS;
-  player.pitch = Math.max(-1.35, Math.min(1.35, player.pitch));
-});
-lookZone.addEventListener('pointerup', () => { lookDragging = false; });
-lookZone.addEventListener('pointercancel', () => { lookDragging = false; });
-
-function setSlot(n) {
-  activeSlot = n;
-  document.querySelectorAll('#hotbar .slot').forEach((el) => {
-    el.classList.toggle('active', Number(el.dataset.slot) === n);
-  });
-  if (n === 3 && state.enMano > 0) {
-    // Drop at feet
-    dropAtFeet();
+function placeBuild() {
+  if (!buildType) return;
+  updateGhost();
+  if (buildType === 'belt') {
+    if (!beltStart) { beltStart = ghostInfo.a.clone(); beltFrom = ghostInfo.from; beep(600, 0.04, 0.03); return; }
+    if (!ghostValid) { beep(160, 0.12, 0.05); return; }
+    const { a, b, join, from, cost } = ghostInfo;
+    const bl = addBelt(a, b, cost); S.money -= cost; inc('belts');
+    if (from) from.out = { seg: bl.seg, t: 0 };
+    if (join) bl.seg.out = { seg: join.seg, t: join.t };
+    // continue the run from the new end
+    beltStart = b.clone(); beltFrom = join ? null : bl.seg; if (join) { beltStart = null; }
+    beep(700, 0.05, 0.04); save(); return;
   }
-  if (n === 2) toast('Build catalogue — coming soon');
+  if (!ghostValid) { beep(160, 0.12, 0.05); return; }
+  const def = BUILD[buildType];
+  const b = new Bld({ type: buildType, x: ghost.position.x, z: ghost.position.z, rot: placeRot, cost: def.price });
+  builds.push(b); S.money -= def.price; inc('built_' + buildType); rebuildWires(); updatePower(); beep(700, 0.05, 0.04); save();
 }
-
-function dropAtFeet() {
-  if (state.enMano <= 0) return;
-  state.pajaRestante += state.enMano;
-  state.enMano = 0;
-  toast('Dropped hay');
-  updateHUD();
-  save();
+function dismantleTarget() {
+  if (aim.kind === 'bld' && aim.d < 8) return aim.b;
+  if (aim.kind === 'belt' && aim.d < 8) return aim.seg.pre ? 'pre' : aim.seg.bld;
+  return null;
 }
+function doDismantle(b) { S.money += b.cost; b.dispose(); inc('dismantled'); tip('Taken down. You got ' + fmt$(b.cost) + ' back.'); beep(420, 0.1, 0.05); save(); }
 
-window.addEventListener('keydown', (e) => {
-  keys[e.code] = true;
-  if (e.code === 'KeyE') interactHeld = true;
-  if (e.code === 'Digit1') setSlot(1);
-  if (e.code === 'KeyB' || e.code === 'Digit2') setSlot(2);
-  if (e.code === 'KeyQ' || e.code === 'Digit3' || e.code === 'Digit9') setSlot(3);
-  if (e.code === 'KeyG') dropAtFeet();
-});
-window.addEventListener('keyup', (e) => {
-  keys[e.code] = false;
-  if (e.code === 'KeyE') interactHeld = false;
-});
-
-let pointerLocked = false;
-canvas.addEventListener('click', () => {
-  if (!started) return;
-  if (!('ontouchstart' in window)) canvas.requestPointerLock?.();
-});
-document.addEventListener('pointerlockchange', () => {
-  pointerLocked = document.pointerLockElement === canvas;
-});
-document.addEventListener('mousemove', (e) => {
-  if (!pointerLocked) return;
-  player.yaw -= e.movementX * 0.0022;
-  player.pitch -= e.movementY * 0.0022;
-  player.pitch = Math.max(-1.35, Math.min(1.35, player.pitch));
-});
-document.addEventListener('mousedown', (e) => {
-  if (!started || shopEl.classList.contains('open')) return;
-  if (e.button === 0) {
-    interactHeld = true;
-    doInteractTap();
-  }
-});
-document.addEventListener('mouseup', (e) => {
-  if (e.button === 0) interactHeld = false;
-});
-
-btnInteract.addEventListener('pointerdown', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  interactHeld = true;
-  btnInteract.classList.add('held');
-  doInteractTap();
-});
-btnInteract.addEventListener('pointerup', () => {
-  interactHeld = false;
-  btnInteract.classList.remove('held');
-});
-btnInteract.addEventListener('pointercancel', () => {
-  interactHeld = false;
-  btnInteract.classList.remove('held');
-});
-btnInteract.addEventListener('contextmenu', (e) => e.preventDefault());
-
-document.getElementById('btn-start').addEventListener('click', () => {
-  started = true;
-  startGate.style.display = 'none';
-});
-document.getElementById('shop-close').addEventListener('click', () => {
-  shopEl.classList.remove('open');
-});
-document.getElementById('needle-ok').addEventListener('click', () => {
-  needleFx.classList.remove('open');
-});
-
-function distXZ(a, b) {
-  return Math.hypot(a.x - b.x, a.z - b.z);
+// ================== TECH TREE ==================
+let treeCat = null;
+const techPrice = t => t.prices[lvl(t.id)];
+const techReady = t => lvl(t.id) < t.prices.length && (t.req || []).every(has);
+function renderTree() {
+  $('tree-m').textContent = fmt$(S.money);
+  const q = $('tree-q').value.trim().toLowerCase();
+  $('tree-cats').innerHTML = TREE_CATS.map(c => { const n = TECH.filter(t => t.cat === c && techReady(t) && S.money >= techPrice(t)).length; return `<div data-c="${c}" class="${treeCat === c ? 'on' : ''}">${c}${n ? `<span>${n} ready</span>` : ''}</div>`; }).join('');
+  const list = TECH.filter(t => (!treeCat || t.cat === treeCat) && (!q || (t.name + t.cat + t.desc).toLowerCase().includes(q)));
+  $('tree-cards').innerHTML = list.map(t => {
+    const L = lvl(t.id), max = t.prices.length, own = L >= max, ready = techReady(t), locked = !ready && !own;
+    const pc = own ? 'OWNED' : locked ? 'LOCKED' : fmt$(techPrice(t));
+    return `<div class="card ${own ? 'own' : locked ? 'lock' : S.money >= techPrice(t) ? 'ready' : ''}" data-t="${t.id}"><div class="cg">${t.group || t.cat}</div><div class="nm">${t.name}</div><div class="ds">${t.desc}${locked ? ' <i>Needs: ' + t.req.map(r => TECH.find(x => x.id === r).name).join(', ') + '</i>' : ''}</div><div class="pc"><span>${pc}</span>${max > 1 ? `<span class="lv">${L}/${max}</span>` : ''}</div></div>`;
+  }).join('') + (treeCat === 'PROCESSING' || treeCat === 'WATER' ? '<div class="card lock"><div class="cg">' + treeCat + '</div><div class="nm">Coming later</div><div class="ds">Compressor, wrapper, sprinklers… not in this web build yet.</div></div>' : '');
+  const total = TECH.reduce((a, t) => a + t.prices.length, 0), bought = TECH.reduce((a, t) => a + lvl(t.id), 0);
+  $('tree-ft').textContent = `${bought} of ${total} levels bought  ·  click a card to buy  ·  Tab to close`;
 }
+$('tree-cats').addEventListener('click', e => { const c = e.target.closest('[data-c]'); if (!c) return; treeCat = treeCat === c.dataset.c ? null : c.dataset.c; renderTree(); });
+$('tree-cards').addEventListener('click', e => {
+  const c = e.target.closest('[data-t]'); if (!c) return; const t = TECH.find(x => x.id === c.dataset.t);
+  if (!techReady(t)) { beep(160, 0.1, 0.04); return; }
+  const p = techPrice(t); if (S.money < p) { beep(160, 0.1, 0.04); return; }
+  S.money -= p; S.tech[t.id] = lvl(t.id) + 1; inc('techBought'); beep(900, 0.08, 0.05, 'triangle');
+  if (t.id === 'sell') refreshPriceSign();
+  if (t.id === 'hands' && S.tool === 'hand') buildVM();
+  renderTree(); save();
+});
+$('tree-q').addEventListener('input', renderTree);
+$('tree-q').addEventListener('keydown', e => e.stopPropagation());
+function toggleTree() { if ($('tree').classList.contains('open')) closePanel('tree'); else { if (anyPanel()) return; cancelBuild(); renderTree(); openPanel('tree'); inc('treeOpen'); } }
+$('tree-x').onclick = () => closePanel('tree');
 
-function updateNear() {
-  const p = player.pos;
-  const dHay = distXZ(p, hayCollider);
-  const dSell = distXZ(p, sellPos);
-  const dShop = distXZ(p, shopPos);
-  nearTarget = null;
-  let show = false;
-  let can = false;
-  elPromptSub.textContent = '';
-  elPromptKey.className = 'key';
-
-  if (dHay < HAY_RADIUS) {
-    nearTarget = 'hay';
-    if (state.enMano >= state.capacidad) {
-      elPromptTop.textContent = 'FULL';
-      elPromptKey.textContent = '!';
-      elPromptLab.textContent = 'Hands full';
-      elPromptSub.textContent = 'Sell at the stand';
-      show = true;
-    } else if (state.pajaRestante <= 0) {
-      elPromptTop.textContent = '';
-      elPromptKey.textContent = '—';
-      elPromptLab.textContent = 'Hay mountain empty';
-      show = true;
-    } else {
-      elPromptTop.textContent = 'HOLD';
-      elPromptKey.textContent = 'E';
-      elPromptLab.textContent = 'Pick hay';
-      elPromptSub.textContent = state.enMano + ' / ' + state.capacidad + ' in hand';
-      show = true;
-      can = true;
-    }
-  } else if (dSell < 4.5) {
-    nearTarget = 'sell';
-    if (state.enMano > 0) {
-      elPromptTop.textContent = 'PRESS';
-      elPromptKey.textContent = 'LMB';
-      elPromptLab.textContent = 'Drop hay';
-      elPromptSub.textContent = 'Sell at the bay · ' + fmt$(state.enMano * PRECIO);
-      show = true;
-      can = true;
-    } else {
-      elPromptTop.textContent = '';
-      elPromptKey.textContent = '$';
-      elPromptLab.textContent = 'Sell bay';
-      elPromptSub.textContent = 'Bring hay to drop';
-      show = true;
-    }
-  } else if (dShop < 4.5) {
-    nearTarget = 'shop';
-    elPromptTop.textContent = '';
-    elPromptKey.textContent = 'E';
-    elPromptLab.textContent = 'OPEN SHOP';
-    elPromptSub.textContent = 'Supply Co. — tools, buckets and barrows';
-    show = true;
-    can = true;
-  }
-  elPrompt.classList.toggle('show', show);
-  btnInteract.classList.toggle('dim', !can);
+// ================== BUILD CATALOGUE ==================
+let catTab = 'Everything';
+function renderCat() {
+  $('cat-tabs').innerHTML = CAT_TABS.map(t => `<div class="${t === catTab ? 'on' : ''}" data-tab="${t}">${t}</div>`).join('');
+  const list = Object.entries(BUILD).filter(([k, d]) => catTab === 'Everything' || (catTab === 'Unlocked' ? (!d.never && has(d.card)) : d.cat === catTab));
+  $('cat-grid').innerHTML = list.map(([k, d]) => { const lock = d.never || !has(d.card); return `<div class="bi ${lock ? 'lock' : ''}" data-b="${k}">${k === 'belt' ? '<span class="ky">KEY 4</span>' : ''}${lock ? '<span class="lk">🔒</span>' : ''}<div class="ico">${d.ico}</div><div class="nm">${d.name}</div><div class="pc">${d.perM ? '$8 per metre' : (d.r !== undefined && (k === 'arm' || k === 'rake') ? 'from ' : '') + '$' + d.price}</div></div>`; }).join('');
 }
+$('cat-tabs').addEventListener('click', e => { const t = e.target.closest('[data-tab]'); if (t) { catTab = t.dataset.tab; renderCat(); } });
+$('cat-grid').addEventListener('click', e => {
+  const c = e.target.closest('[data-b]'); if (!c) return; const k = c.dataset.b, d = BUILD[k];
+  if (d.never) { tip(d.name + ' is in the real game but not in this web build yet.'); return; }
+  if (!has(d.card)) { closePanel('cat'); const t = TECH.find(x => x.id === d.card); treeCat = t.cat; renderTree(); openPanel('tree'); return; }
+  equipBuild(k);
+});
+function toggleCat() { if ($('cat').classList.contains('open')) { closePanel('cat'); return; } if (buildType) { cancelBuild(); return; } if (anyPanel()) return; renderCat(); openPanel('cat'); inc('catOpen'); }
+$('cat-x').onclick = () => closePanel('cat');
 
-function doInteractTap() {
-  if (!started) return;
-  if (nearTarget === 'sell') sellHay();
-  else if (nearTarget === 'shop') openShop();
-}
-
-function pickRate() {
-  if (state.tool === 'wheelbarrow') return 45;
-  if (state.tool === 'pitchfork') return 32;
-  if (state.tool === 'spade') return 28;
-  if (state.tool === 'toyshovel') return 18;
-  if (state.tool === 'bucket') return 22;
-  return PICK_RATE;
-}
-
-function pickHay(dt) {
-  if (nearTarget !== 'hay') return;
-  if (state.enMano >= state.capacidad) {
-    toast('Hands full — sell at the stand');
-    return;
-  }
-  if (state.pajaRestante <= 0) return;
-
-  pickAcc += pickRate() * dt;
-  let plucked = false;
-  while (pickAcc >= 1 && state.enMano < state.capacidad && state.pajaRestante > 0) {
-    pickAcc -= 1;
-    state.enMano += 1;
-    state.pajaRestante -= 1;
-    state.picksTotales += 1;
-    plucked = true;
-    if (state.mision === 0) state.mision = 1;
-    if (!state.agujaEncontrada && state.picksTotales >= state.agujaAt) {
-      state.agujaEncontrada = true;
-      state.mision = 4;
-      needleFx.classList.add('open');
-      try { navigator.vibrate?.(80); } catch (_) {}
-    }
-  }
-  if (plucked) burstPick();
-  if (state.enMano >= state.capacidad) pickAcc = 0;
-  rebuildHaystack();
-  updateHUD();
-  save();
-}
-
-function spawnSellFx() {
-  const from = camera.position.clone().add(new THREE.Vector3(0.02, -0.25, -0.5));
-  const to = sellGroup.position.clone().add(new THREE.Vector3(0, 1.2, 1.4));
-  for (const fx of sellFx) {
-    if (fx.active) continue;
-    fx.active = true;
-    fx.t = 0;
-    fx.from.copy(from);
-    fx.to.copy(to);
-    fx.mesh.visible = true;
-    fx.mesh.position.copy(from);
-    break;
-  }
-}
-
-function sellHay() {
-  if (state.enMano <= 0) {
-    toast('No hay in hand');
-    return;
-  }
-  const n = state.enMano;
-  const gain = n * PRECIO;
-  state.monedas += gain;
-  state.soldTotal += n;
-  state.enMano = 0;
-  state.earnWindow.push({ t: performance.now(), v: gain });
-  if (state.mision === 1) state.mision = 2;
-  if (state.mision >= 2 && state.monedas >= GOAL) state.mision = Math.max(state.mision, 3);
-  elCoin.textContent = '+' + fmt$(gain);
-  elCoin.classList.remove('show');
-  void elCoin.offsetWidth;
-  elCoin.classList.add('show');
-  try { navigator.vibrate?.(30); } catch (_) {}
-  dropZone.material.opacity = 0.75;
-  setTimeout(() => { dropZone.material.opacity = 0.22; }, 220);
-  spawnSellFx();
-  updateHUD();
-  save();
-}
-
-function openShop() {
-  renderShop();
-  shopEl.classList.add('open');
-}
-
-const SHOP_ITEMS = [
-  { id: 'toyshovel', ico: '🧒', name: 'Toy Shovel', desc: 'A small shovel. Digs 18 strands at a time.', cost: 0.25, cap: 18 },
-  { id: 'bucket', ico: '🪣', name: 'Bucket', desc: 'Holds 600 strands of hay.', cost: 10, cap: 600 },
-  { id: 'spade', ico: '⛏️', name: 'Spade', desc: 'Digs 54 strands at a time.', cost: 12, cap: 54 },
-  { id: 'pitchfork', ico: '🔱', name: 'Pitchfork', desc: 'Lifts 62 strands at a time.', cost: 30, cap: 62 },
-  { id: 'wheelbarrow', ico: '🛒', name: 'Wheelbarrow', desc: 'Holds 2100 strands of hay.', cost: 150, cap: 2100 },
-];
-
+// ================== SHOP ==================
+function openShop() { renderShop(); openPanel('shop'); inc('shopOpen'); }
 function renderShop() {
-  shopAvail.textContent = 'Available: ' + fmt$(state.monedas);
-  shopList.innerHTML = '';
-  for (const it of SHOP_ITEMS) {
-    const owned = !!state.owned[it.id];
-    const equipped = state.tool === it.id;
-    const row = document.createElement('div');
-    row.className = 'shop-item' + (it.id === 'wheelbarrow' ? ' hl' : '');
-    const btn = document.createElement('button');
-    if (equipped) {
-      btn.textContent = 'EQUIPPED';
-      btn.disabled = true;
-    } else if (owned) {
-      btn.textContent = 'EQUIP';
-      btn.addEventListener('click', () => {
-        state.tool = it.id;
-        syncCap();
-        if (state.mision === 2) state.mision = 3;
-        toast(it.name + ' equipped');
-        updateHUD(); save(); renderShop();
-      });
-    } else {
-      btn.textContent = fmt$(it.cost);
-      btn.disabled = state.monedas < it.cost;
-      btn.addEventListener('click', () => {
-        if (state.monedas < it.cost) { toast('Not enough money'); return; }
-        state.monedas -= it.cost;
-        state.owned[it.id] = true;
-        state.tool = it.id;
-        syncCap();
-        if (state.mision === 2) state.mision = 3;
-        toast(it.name + ' purchased!');
-        updateHUD(); save(); renderShop();
-      });
-    }
-    row.innerHTML = `<div class="ico">${it.ico}</div><div class="info"><div class="name">${it.name}</div><div class="desc">${it.desc}</div><div class="price">${fmt$(it.cost)}</div></div>`;
-    row.appendChild(btn);
-    shopList.appendChild(row);
+  $('shop-m').textContent = 'You have ' + fmt$(S.money) + '.';
+  let h = '';
+  for (const k of TOOL_ORDER) {
+    const t = TOOLS[k], owned = !!S.owned[k], card = !t.card || has(t.card);
+    const onGround = S.groundTools.find(g => g.t === k);
+    let btn;
+    if (owned && onGround) btn = `<button data-bring="${k}">BRING TO ME</button>`;
+    else if (owned) btn = `<button disabled>OWNED</button>`;
+    else if (!card) btn = `<button disabled>NEEDS CARD</button>`;
+    else btn = `<button data-buy="${k}" ${S.money < t.price ? 'disabled' : ''}>${fmt$(t.price)}</button>`;
+    h += `<div class="si"><div class="ico">${t.ico}</div><div class="inf"><div class="nm">${t.name}</div><div class="ds">${t.desc}${!card ? ' Buy the ' + TECH.find(x => x.id === t.card).name + ' card in the tech tree first.' : ''}</div></div>${btn}</div>`;
   }
+  $('shop-list').innerHTML = h;
+}
+$('shop-list').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.buy) { const k = b.dataset.buy, t = TOOLS[k]; if (S.money < t.price) return; S.money -= t.price; S.owned[k] = true; if (!S.slots.includes(k)) S.slots.push(k); inc('bought_' + k); beep(900, 0.08, 0.05, 'triangle'); setTool(k); renderSlots(); }
+  if (b.dataset.bring) { const gt = S.groundTools.find(g => g.t === b.dataset.bring); if (gt) { const f = fwdXZ(); gt.x = P.pos.x + f.x * 1.0; gt.z = P.pos.z + f.z * 1.0; syncGroundTools(); inc('bring'); tip(TOOLS[gt.t].name + ' is back at your feet. Press E to pick it up.'); } }
+  renderShop(); save();
+});
+$('shop-x').onclick = () => closePanel('shop');
+
+// ================== RAKE PANEL / CABINET ==================
+let rakeSel = null;
+function openRake(b) { rakeSel = b; $('rake-s').value = b.throwD; $('rake-v').textContent = b.throwD.toFixed(1) + ' m'; $('rake-pw').textContent = powered.has(b) ? 'powered' : 'NO POWER'; $('rake-on').textContent = b.on ? 'TURN OFF' : 'TURN ON'; openPanel('rakep'); }
+$('rake-s').addEventListener('input', () => { if (!rakeSel) return; rakeSel.throwD = +$('rake-s').value; $('rake-v').textContent = rakeSel.throwD.toFixed(1) + ' m'; rakeSel.placeMark(); inc('rakeSlider'); });
+$('rake-on').onclick = () => { if (rakeSel) { rakeSel.on = !rakeSel.on; $('rake-on').textContent = rakeSel.on ? 'TURN OFF' : 'TURN ON'; } };
+$('rake-x').onclick = () => { closePanel('rakep'); save(); };
+function openCabinet() { $('cab-dr').innerHTML = NEEDLE_TYPES.map(n => `<div class="${S.found.includes(n) ? 'got' : ''}">${S.found.includes(n) ? '🪡<br>' : ''}${n.replace(' needle', '').toUpperCase()}</div>`).join(''); openPanel('cabp'); }
+$('cab-x').onclick = () => closePanel('cabp');
+$('found-x').onclick = () => closePanel('found');
+
+// ================== HOTBAR / PROMPTS ==================
+function renderSlots() {
+  let h = S.slots.map((t, i) => `<div class="slot ${S.tool === t && !buildType ? 'on' : ''}" data-s="${t}"><span class="n">${i + 1}</span><span class="ic">${TOOLS[t].ico}</span></div>`).join('');
+  h += `<div class="slot ${buildType ? 'on' : ''}" data-s="B"><span class="n">B</span><span class="tx">BUILD</span></div><div class="slot" data-s="Q"><span class="n">Q</span><span class="tx">DROP</span></div>`;
+  $('slots').innerHTML = h;
+}
+$('slots').addEventListener('pointerdown', e => { e.stopPropagation(); const s = e.target.closest('[data-s]'); if (!s || !started) return; const v = s.dataset.s; if (v === 'B') toggleCat(); else if (v === 'Q') onQ(); else setTool(v); });
+const K = k => `<span class="k">${k}</span>`;
+function renderPrompts() {
+  let p = [];
+  if (buildType === 'belt') p = beltStart ? [K('LMB') + 'Place run', K('RMB') + 'Cancel', K('C') + K('V') + 'Distance', K('B') + 'Build catalogue'] : [K('LMB') + 'Start run', K('RMB') + 'Cancel', K('C') + K('V') + 'Distance', K('B') + 'Build catalogue'];
+  else if (buildType) p = [K('LMB') + 'Place', K('R') + 'Turn', K('RMB') + 'Cancel', K('C') + K('V') + 'Distance'];
+  else {
+    const tb = dismantleTarget();
+    if (S.tool === 'detector') p = [K('RMB') + (S.detOn ? 'Switch off' : 'Switch on'), K('LMB') + 'Dig here', K('Q') + 'Drop detector'];
+    else if (S.load > 0) p = [K('LMB') + ((aim.kind === 'belt' || aim.nearBay) ? 'Drop it in' : 'Scoop'), K('RMB') + 'Empty it', K('F') + 'Throw', K('E') + 'Drop all'];
+    else p = [K('LMB') + (S.tool === 'hand' ? 'Pull out hay' : 'Scoop'), K('F') + 'Throw ' + (S.tool === 'hand' ? 'all' : TOOLS[S.tool].name.toLowerCase())];
+    if (S.tool !== 'hand' && S.tool !== 'detector') p.push(K('Q') + 'Drop ' + TOOLS[S.tool].name.toLowerCase());
+    if (aim.kind === 'gtool' && aim.d < 3.5) p.unshift(K('E') + 'Pick up ' + TOOLS[aim.gt.t].name.toLowerCase());
+    else if (aim.kind === 'bld' && aim.d < 5) p.unshift(K('E') + (aim.b.type === 'rake' ? 'Open panel' : aim.b.type === 'cabinet' ? 'Open the cabinet' : aim.b.type === 'generator' && S.load > 0 ? 'Feed the generator' : (aim.b.on ? 'Turn off' : 'Turn on')));
+    else if (aim.nearShop) p.unshift(K('E') + 'Shop');
+    if (tb && tb !== 'pre') p.push('Hold ' + K('X') + 'Dismantle');
+    p.push(K('B') + 'Build catalogue');
+  }
+  const html = p.join('');
+  if ($('prompts').innerHTML !== html) $('prompts').innerHTML = html;
+}
+function showTouchBuild(on) { for (const id of ['tb-r', 'tb-near', 'tb-far']) $(id).classList.toggle('hide', !on); $('tb-lmb').textContent = on ? 'PLACE' : 'LMB'; $('tb-rmb').innerHTML = on ? 'CANCEL' : 'RMB<br>TIP'; renderSlots(); }
+
+// ================== MISSIONS (texts from the video where visible) ==================
+const c = k => S.cnt[k] || 0;
+const nb = t => builds.filter(b => b.type === t).length;
+const STEPS = [
+  { t: 'Pick up some hay', k: 'LMB', b: 'Look at the haystack. Hold <b>LMB</b> to pull out hay. Your hand takes only one straw at a time. A shovel takes much more.', done: () => S.load > 0 || c('sold') > 0 },
+  { t: 'Carry it to the stand', b: 'Follow the belt to the <b>HAY IN</b> sign in the far corner. The low end of the belt is the open bay.', done: () => aim.nearBay || c('sold') > 0 },
+  { t: 'Sell hay at the stand', k: 'LMB', b: 'The selling stand is in the far corner. Walk there. Stand at the open bay and press <b>LMB</b> to drop the hay in. You get money for it.', goal: 1.25, val: () => S.money },
+  { t: 'Open the tech tree', k: 'Tab', b: 'Press <b>Tab</b> to open the tech tree. Buy machines and upgrades here. Press <b>Tab</b> again to close it.', done: () => c('treeOpen') > 0 },
+  { t: 'Buy bigger hands', k: 'Tab', b: 'In <b>HAND WORK</b>, buy Bigger Hands for $0.10. Your hand holds one more straw for every level.', done: () => has('hands') },
+  { t: 'Buy the toy shovel', k: 'E', b: 'Walk to the <b>SUPPLY CO.</b> counter next to the stand and press <b>E</b>. Buy the Toy Shovel for $0.25. It goes in the next free box on your bar.', done: () => !!S.owned.toyshovel },
+  { t: 'Hold the shovel', k: '2', b: 'Press <b>2</b> or tap its box on your bar to take the shovel in your hands.', done: () => S.tool !== 'hand' || c('heldTool') > 0 },
+  { t: 'Dig with the shovel', k: 'LMB', b: 'Look at the haystack and press <b>LMB</b>. The blade fills with hay. Dig three times.', n: 3, val: () => c('toolScoops') },
+  { t: 'Sell a full blade', k: 'LMB', b: 'Carry the blade to the open bay and press <b>LMB</b> to tip it in. Watch it ride up the belt.', done: () => c('sold') >= 40 },
+  { t: 'Throw it', k: 'F', b: 'With hay on the blade, press <b>F</b> to throw the whole load. Try to land it on the belt.', done: () => c('throws') > 0 },
+  { t: 'Empty the blade', k: 'RMB', b: 'Point where you want the hay. Press <b>RMB</b>. The whole load goes there. Do this three times.', n: 3, val: () => c('tips') },
+  { t: 'Earn thirty dollars', b: 'Press <b>LMB</b> to dig. Carry the hay to the stand without <b>Shift</b>, or you will drop it. Press <b>RMB</b> to tip it in. Do this until you have thirty dollars. The spade costs $15 for the card and $12 for the spade itself.', goal: 30, val: () => S.money },
+  { t: 'Buy the spade', k: 'Tab', b: 'Press <b>Tab</b>. Buy the Spade card for $15. Then buy the spade in the shop for $12. Press <b>E</b> to pick it up. It goes in the next free box on your bar.', done: () => !!S.owned.spade },
+  { t: 'Put a tool down', k: 'Q', b: 'Take a tool in your hands. Press <b>Q</b> to put it on the ground, or <b>F</b> to throw it. It stays there. Walk to it and press <b>E</b> to pick it up again.', done: () => c('toolUp') > 0 },
+  { t: 'Fetch a lost tool', k: 'Q', b: 'Press <b>Q</b> to put a tool on the ground. Walk to the shop counter and press <b>E</b>. Click <b>BRING TO ME</b> next to that tool. It comes back to your feet.', done: () => c('bring') > 0 },
+  { t: 'Buy the conveyor plans', k: 'Tab', b: 'Press <b>Tab</b>. In <b>HAY LINES</b> buy Conveyor Plans for $40. Belts carry hay for you.', done: () => has('conveyor') },
+  { t: 'Build a conveyor belt', k: 'B', b: 'Press <b>B</b> and pick Conveyor Belt, $8 per metre. Click to start the run and click again to place it. End it on the stand\'s belt so they join.', done: () => segs.some(s => !s.pre && feedsSell(s)) },
+  { t: 'Tip hay on your belt', k: 'RMB', b: 'Stand by your belt and press <b>RMB</b> to tip a load onto it. It rides to the stand and sells on its own.', done: () => c('pbeltSold') > 0 },
+  { t: 'Reach a hundred dollars', b: 'Keep selling hay until you have one hundred dollars. Then you can start building machines instead of carrying hay yourself.', goal: 100, val: () => S.money },
+  { t: 'Speed up the belts', k: 'Tab', b: 'Belts jam when you pile on too much. Press <b>Tab</b> and buy <b>Faster Belt Motor</b> for $15. Every belt runs faster.', done: () => has('motor') },
+  { t: 'Build the needle cabinet', k: 'B', b: 'Press <b>Tab</b>. Buy the Needle Cabinet card for $10. Press <b>B</b> and pick the cabinet. Click a place on the floor to build it.', done: () => nb('cabinet') > 0 },
+  { t: 'Turn it around', k: 'R', b: 'Press <b>B</b> and pick anything. Press <b>R</b> to turn the copy before you place it. Press <b>RMB</b> to cancel.', done: () => c('rotated') > 0 },
+  { t: 'Move it closer or further', k: 'Wheel up', b: 'Press <b>B</b> and pick anything. You now see a copy of it on your cursor. Roll the mouse wheel, or press <b>C</b> and <b>V</b>. The copy moves closer to you and further away.', n: 2, val: () => Math.min(2, c('distMoved')) },
+  { t: 'Open the cabinet', k: 'E', b: 'Look at the needle cabinet and press <b>E</b>. Every kind of needle has its own drawer.', done: () => c('cabOpen') > 0 },
+  { t: 'Sell for more', k: 'Tab', b: 'The sign by the bay says what a strand is worth. Press <b>Tab</b> and look at <b>SELLING</b>. Each level makes everything sell for 5% more.', done: () => has('sell') },
+  { t: 'Take something down again', k: 'X', b: 'Point at anything you built. Hold <b>X</b> until it comes down. You get all your money back.', done: () => c('dismantled') > 0 },
+  { t: 'Build a piston rake', b: 'Press <b>Tab</b>. Buy the Hay Piston Rake card for $60. Press <b>B</b> and place it in front of the haystack. It costs $120 to build. It must face the hay or it does nothing. It will not work until it has power.', done: () => nb('rake') > 0 },
+  { t: 'Give the rake power', b: 'Your rake needs power. Press <b>Tab</b> and buy Electricity for $90. Press <b>B</b> and build a Hay Generator for $150 and a Power Pole for $45. The pole must stand within 6 metres of the rake and of the generator. Put hay into the generator so it has something to burn.', done: () => builds.some(b => b.type === 'rake' && powered.has(b)) },
+  { t: 'Set how far the rake throws', k: 'E', b: 'Your rake throws the hay over its back. You choose how far. Look at the rake and press <b>E</b> to open its panel. Drag the slider. The marks on the ground show where the hay will land.', done: () => c('rakeSlider') > 0 },
+  { t: 'Feed a belt with the rake', b: 'Put a belt where the rake\'s hay lands. Now the rake loads the belt on its own and you can stop digging.', done: () => c('rakeOnBelt') > 0 },
+  { t: 'Build a robotic arm', b: 'Press <b>Tab</b>. Buy Small Arm Plans for $90. Press <b>B</b> and place the arm between the haystack and a belt, $180 to build, with a pole near it. It digs and puts the hay on the belt.', done: () => c('armWork') > 0 },
+  { t: 'Buy the metal detector', b: 'Press <b>Tab</b> and buy the Metal Detector card for $130. Then buy the detector in the shop for $260. It beeps faster the closer you are to a needle. Walk over the pile and listen.', done: () => !!S.owned.detector },
+  { t: 'Switch the detector on and off', k: 'RMB', b: 'Hold the detector. Press <b>RMB</b> to turn it on and again to turn it off. Do this three times.', n: 3, val: () => c('detToggle') },
+  { t: 'Put a scanner on a belt', k: 'B', b: 'Press <b>Tab</b> and buy Scanner MK1 Plans. Press <b>B</b> and build it over a belt. It checks the hay that passes for needles.', done: () => nb('scanner') > 0 },
+  { t: 'Find the needle', b: 'Walk round the pile with the detector on. When the beeps turn into a scream, press <b>LMB</b> to dig. Or let the scanner catch one on the belt.', n: 1, val: () => S.found.length },
+  { t: 'Fill the cabinet', b: 'There are more needles in the pile, and more kinds. Keep digging, keep the belts running, and fill every drawer.', n: 8, val: () => S.found.length },
+];
+function feedsSell(s, depth = 0) { if (depth > 40) return false; if (s.out === 'sell') return true; if (s.out && s.out.seg) return feedsSell(s.out.seg, depth + 1); return false; }
+let lastStepHTML = '';
+function updateMission() {
+  if (S.step >= STEPS.length) S.step = STEPS.length - 1;
+  let st = STEPS[S.step];
+  const complete = st.done ? st.done() : st.goal ? st.val() >= st.goal : st.n ? st.val() >= st.n : false;
+  if (complete && S.step < STEPS.length - 1) { S.step++; beep(760, 0.08, 0.05, 'triangle'); setTimeout(() => beep(1140, 0.1, 0.05, 'triangle'), 90); save(); st = STEPS[S.step]; }
+  $('m-st').textContent = `STEP ${S.step + 1} OF 41`;
+  $('m-ti').textContent = st.t; $('m-kb').textContent = st.k || ''; $('m-kb').style.display = st.k ? 'block' : 'none';
+  if (lastStepHTML !== st.b) { $('m-bd').innerHTML = st.b; lastStepHTML = st.b; }
+  const bar = $('m-bar'), pr = $('m-pr');
+  if (st.goal) { const v = st.val(); bar.style.display = pr.style.display = 'block'; bar.firstChild.style.width = Math.min(100, v / st.goal * 100) + '%'; pr.textContent = `${fmt$(v)} / ${fmt$(st.goal)}  ·  ${fmt$(st.goal - v)} left`; }
+  else if (st.n) { const v = Math.min(st.n, st.val()); bar.style.display = pr.style.display = 'block'; bar.firstChild.style.width = (v / st.n * 100) + '%'; pr.textContent = `${v} / ${st.n}`; }
+  else { bar.style.display = pr.style.display = 'none'; }
 }
 
-function collideMove(nx, nz) {
-  const bounds = 28;
-  nx = Math.max(-bounds, Math.min(bounds, nx));
-  nz = Math.max(-28, Math.min(28, nz));
-  const dx = nx - hayCollider.x;
-  const dz = nz - hayCollider.z;
-  const d = Math.hypot(dx, dz);
-  const minR = 5.5 * pileScale() + 0.9;
-  if (d < minR && d > 0.01) {
-    nx = hayCollider.x + (dx / d) * minR;
-    nz = hayCollider.z + (dz / d) * minR;
-  }
-  for (const bp of [sellPos, shopPos]) {
-    const bx = nx - bp.x, bz = nz - bp.z;
-    const bd = Math.hypot(bx, bz);
-    if (bd < 2.4 && bd > 0.01) {
-      nx = bp.x + (bx / bd) * 2.4;
-      nz = bp.z + (bz / bd) * 2.4;
+// ================== MACHINES UPDATE ==================
+const smoke = []; const smokeMat = new THREE.MeshBasicMaterial({ color: 0xdddddd, transparent: true, opacity: 0.5, depthWrite: false });
+const smokeGeo = new THREE.SphereGeometry(0.25, 6, 5);
+function updateMachines(dt) {
+  for (const b of builds) {
+    if (b.type === 'generator') {
+      const load = genLoad.get(b) || 0; const burning = b.on && b.fuel > 0 && load > 0;
+      if (burning) b.fuel = Math.max(0, b.fuel - dt * (0.5 + 0.5 * load));
+      b.p.fire.material.color.setHex(burning ? (Math.random() < 0.5 ? 0xff7a1a : 0xffa030) : b.fuel > 0 ? 0x7a3a10 : 0x222222);
+      b.smokeT = (b.smokeT || 0) + dt;
+      if (burning && b.smokeT > 0.25 && smoke.length < 40) { b.smokeT = 0; const m = new THREE.Mesh(smokeGeo, smokeMat); const w = b.p.chim.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), b.rot); m.position.set(b.x + w.x, w.y, b.z + w.z); m.userData.life = 0; scene.add(m); smoke.push(m); }
+    } else if (b.type === 'rake') {
+      const pw = powered.has(b) && b.on; const f = b.fwd();
+      const front = new THREE.Vector3(b.x + f.x * 1.8, 0.4, b.z + f.z * 1.8);
+      const facing = Math.hypot(front.x - HC.x, front.z - HC.z) < pileRAt(0.4) + 0.5;
+      b.anim += dt * (pw && facing ? 1 : 0);
+      const ext = pw && facing ? (Math.sin(b.anim * Math.PI / 1.1 - Math.PI / 2) * 0.5 + 0.5) : 0;
+      b.p.pist.position.z = ext * 0.6;
+      if (pw && facing) { b.timer += dt; if (b.timer > 2.2) { b.timer = 0; const r = takeFromPile(40, front); if (r.n) { const D = b.throwD + 0.6, y0 = 1.3, vy = 5, T = (vy + Math.sqrt(vy * vy + 24 * y0)) / 12, vh = D / T; addItem({ m: 'air', p: new THREE.Vector3(b.x, y0, b.z), v: new THREE.Vector3(-f.x * vh, vy, -f.z * vh), n: r.n, needle: r.needle, src: 'rake' }); inc('rakeWork'); } } }
+    } else if (b.type === 'arm') {
+      const pw = powered.has(b) && b.on;
+      const toPile = Math.atan2(HC.x - b.x, HC.z - b.z);
+      const pileDist = Math.hypot(HC.x - b.x, HC.z - b.z) - PILE_R * pileS;
+      let bp = null, bd = 99; for (const s of segs) { const pr = s.project(b); const t = Math.max(0.2, Math.min(s.len - 0.2, pr.t)); const p = s.at(t); const d = d2(p, b); if (d < bd) { bd = d; bp = { s, t, p }; } }
+      const canWork = pw && pileDist < 3.2 && bp && bd < 3.2;
+      if (canWork) {
+        b.timer += dt; const ph = (b.timer % 2.8) / 2.8; const toBelt = Math.atan2(bp.p.x - b.x, bp.p.z - b.z);
+        const target = ph < 0.5 ? toPile : toBelt; const cur = b.p.tur.rotation.y; const dA = Math.atan2(Math.sin(target - b.rot - cur), Math.cos(target - b.rot - cur)); b.p.tur.rotation.y += dA * Math.min(1, dt * 6);
+        b.p.sh.rotation.x = ph < 0.5 ? 0.45 : -0.1; b.p.el.rotation.x = ph < 0.5 ? 0.6 : 0.4; b.p.hay.visible = ph >= 0.35 && ph < 0.9;
+        if (b.lastPh !== undefined && b.lastPh < 0.9 && ph >= 0.9) { const at = new THREE.Vector3(b.x + Math.sin(toPile) * (pileDist + 0.3), 0.8, b.z + Math.cos(toPile) * (pileDist + 0.3)); const r = takeFromPile(25, at); if (r.n) { const p = bp.p.clone(); p.y += 0.6; addItem({ m: 'air', p, v: new THREE.Vector3(0, -0.5, 0), n: r.n, needle: r.needle, src: 'arm' }); inc('armWork'); } }
+        b.lastPh = ph;
+      }
+    } else if (b.type === 'scanner') {
+      b.scanT = (b.scanT || 0) + dt; let passing = false;
+      for (const it of items) if (it.m === 'belt' && Math.hypot(it.p.x - b.x, it.p.z - b.z) < 0.7) { passing = true; if (it.needle) { it.needle = false; foundNeedle('The Scanner MK1 flashed red and pulled it off the belt.'); } }
+      b.p.lamp.material.color.setHex(passing && Math.sin(b.scanT * 20) > 0 ? 0xffff66 : 0x3dff52);
     }
   }
+  for (let i = smoke.length - 1; i >= 0; i--) { const m = smoke[i]; m.userData.life += dt; m.position.y += dt * 1.2; m.position.x += dt * 0.2; m.scale.setScalar(1 + m.userData.life * 1.5); if (m.userData.life > 3) { scene.remove(m); smoke.splice(i, 1); } }
+}
+
+// ================== DETECTOR ==================
+let detT = 0;
+function updateDetector(dt) {
+  const el = $('det');
+  if (S.tool !== 'detector' || !S.detOn) { el.style.display = 'none'; return; }
+  const np = needleWorld(); const d = np ? Math.hypot(np.x - P.pos.x, np.z - P.pos.z) : 99;
+  const interval = d < 2.2 ? 0.07 : Math.min(1.6, 0.12 + d * 0.06);
+  detT += dt; if (detT > interval) { detT = 0; beep(d < 2.2 ? 1760 : 1100, 0.04, 0.05); }
+  el.style.display = 'block'; el.textContent = d < 2.2 ? '▮▮▮▮▮ DIG HERE' : '▮'.repeat(Math.max(1, Math.round(5 - d / 6))) + '▯'.repeat(Math.max(0, 5 - Math.max(1, Math.round(5 - d / 6))));
+}
+
+// ================== MAIN LOOP ==================
+const clock = new THREE.Clock();
+let hudT = 0, aimT = 0, secT = 0, recT = 0;
+function collide(nx, nz) {
+  nx = Math.max(-WX + 0.5, Math.min(WX - 0.5, nx)); nz = Math.max(-WZ + 0.5, Math.min(WZ - 0.5, nz));
+  const pr = PILE_R * pileS + 0.35, dx = nx - HC.x, dz = nz - HC.z, dd = Math.hypot(dx, dz);
+  if (dd < pr) { nx = HC.x + dx / dd * pr; nz = HC.z + dz / dd * pr; }
+  for (const b of builds) { if (b.type === 'belt') continue; const r = (BUILD[b.type].r || 0.4) + 0.35, ex = nx - b.x, ez = nz - b.z, e = Math.hypot(ex, ez); if (e < r && e > 0.001) { nx = b.x + ex / e * r; nz = b.z + ez / e * r; } }
+  // stand + shop boxes
+  const boxes = [[SX - 1.2, SX + 1.3, SZ - 1.2, SZ + 1.2], [SHOP.x - 0.2, SHOP.x + 1.5, SHOP.z - 2.3, SHOP.z + 2.3]];
+  for (const [x0, x1, z0, z1] of boxes) if (nx > x0 - 0.3 && nx < x1 + 0.3 && nz > z0 - 0.3 && nz < z1 + 0.3) { const o = [nx - (x0 - 0.3), (x1 + 0.3) - nx, nz - (z0 - 0.3), (z1 + 0.3) - nz]; const m = Math.min(...o); if (m === o[0]) nx = x0 - 0.3; else if (m === o[1]) nx = x1 + 0.3; else if (m === o[2]) nz = z0 - 0.3; else nz = z1 + 0.3; }
   return [nx, nz];
 }
-
-window.addEventListener('resize', () => {
-  const w = window.innerWidth, h = window.innerHeight;
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h, false);
-});
-
-if ('ontouchstart' in window) {
-  document.getElementById('desktop-hint').style.display = 'none';
-}
-
-updateHUD();
-
-const clock = new THREE.Clock();
-
 function tick() {
-  const dt = Math.min(clock.getDelta(), 0.05);
   requestAnimationFrame(tick);
-
-  let mx = moveInput.x;
-  let my = moveInput.y;
-  if (keys['KeyW'] || keys['ArrowUp']) my += 1;
-  if (keys['KeyS'] || keys['ArrowDown']) my -= 1;
-  if (keys['KeyA'] || keys['ArrowLeft']) mx -= 1;
-  if (keys['KeyD'] || keys['ArrowRight']) mx += 1;
-  const mlen = Math.hypot(mx, my);
-  if (mlen > 1) { mx /= mlen; my /= mlen; }
-
-  if (started && !shopEl.classList.contains('open') && !needleFx.classList.contains('open')) {
-    const forward = new THREE.Vector3(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
-    const right = new THREE.Vector3(Math.cos(player.yaw), 0, -Math.sin(player.yaw));
-    const wish = new THREE.Vector3();
-    wish.addScaledVector(forward, my);
-    wish.addScaledVector(right, mx);
-    if (wish.lengthSq() > 0) wish.normalize();
-
-    const spd = player.speed * (state.tool === 'wheelbarrow' ? 0.9 : 1);
-    let nx = player.pos.x + wish.x * spd * dt;
-    let nz = player.pos.z + wish.z * spd * dt;
-    [nx, nz] = collideMove(nx, nz);
-    player.pos.x = nx;
-    player.pos.z = nz;
+  const dt = Math.min(0.1, clock.getDelta());
+  if (started && !anyPanel()) {
+    // movement
+    let ix = mv.x, iy = mv.y;
+    if (keys.KeyW || keys.ArrowUp) iy += 1; if (keys.KeyS || keys.ArrowDown) iy -= 1; if (keys.KeyA || keys.ArrowLeft) ix -= 1; if (keys.KeyD || keys.ArrowRight) ix += 1;
+    const il = Math.hypot(ix, iy); if (il > 1) { ix /= il; iy /= il; }
+    const moving = il > 0.05;
+    let sprint = (keys.ShiftLeft || keys.ShiftRight || sprintBtn) && moving && S.stamina > 0.02;
+    if (sprint && S.load > 0 && S.tool !== 'wheelbarrow') { dropLoadAtFeet(); tip('You ran and dropped it. Carry hay without Shift.'); inc('spills'); }
+    S.stamina = Math.max(0, Math.min(1, S.stamina + (sprint ? -dt * 0.22 / (1 + 0.5 * lvl('stamina')) : dt * 0.16)));
+    const spd = (3.6 + 0.5 * lvl('boots')) * (sprint ? 1.75 : 1) * (S.tool === 'wheelbarrow' && S.load > 0 ? 0.8 : 1);
+    const f = fwdXZ(), r = new THREE.Vector3(-f.z, 0, f.x);
+    const nx = P.pos.x + (f.x * iy + r.x * ix) * spd * dt, nz = P.pos.z + (f.z * iy + r.z * ix) * spd * dt;
+    [P.pos.x, P.pos.z] = collide(nx, nz);
+    if (moving) P.bob += dt * spd * 2.2;
+    // hold LMB = repeat scoop
+    if (lmbHeld && !buildType) { scoopT += dt; const tl = TOOLS[S.tool]; if (scoopT > tl.dt) { scoopT = 0; if (!(S.load > 0 && (aim.kind === 'belt' || aim.nearBay))) scoop(); } }
+    // hold X = dismantle
+    const tgt = xHeld && !buildType ? dismantleTarget() : null;
+    if (tgt && tgt !== 'pre') { xT += dt; $('hold').style.display = 'block'; $('hold').firstChild.style.width = Math.min(100, xT / 0.9 * 100) + '%'; if (xT > 0.9) { doDismantle(tgt); xT = 0; xHeld = false; } }
+    else { if (tgt === 'pre' && xHeld) tip('This belt came with the yard. It cannot be taken down.', 1500); xT = 0; $('hold').style.display = 'none'; }
   }
-
-  camera.position.set(player.pos.x, player.eye, player.pos.z);
-  camera.rotation.order = 'YXZ';
-  camera.rotation.y = player.yaw;
-  camera.rotation.x = player.pitch;
-
-  updateNear();
-
-  if (started && interactHeld && nearTarget === 'hay' && !shopEl.classList.contains('open')) {
-    pickHay(dt);
-  } else {
-    pickAcc = 0;
-  }
-
-  for (const fx of sellFx) {
-    if (!fx.active) continue;
-    fx.t += dt * 2.2;
-    if (fx.t >= 1) {
-      fx.active = false;
-      fx.mesh.visible = false;
-      continue;
-    }
-    const t = fx.t;
-    fx.mesh.position.lerpVectors(fx.from, fx.to, t);
-    fx.mesh.position.y += Math.sin(t * Math.PI) * 0.9;
-    fx.mesh.rotation.z += dt * 10;
-  }
-
-  for (const b of pickBits) {
-    if (!b.active) continue;
-    b.t += dt;
-    b.vel.y -= 9 * dt;
-    b.pos.addScaledVector(b.vel, dt);
-    b.mesh.position.copy(b.pos);
-    b.mesh.rotation.x += dt * 8;
-    if (b.t >= b.life) {
-      b.active = false;
-      b.mesh.visible = false;
-    }
-  }
-
-  handGroup.position.y = -0.48 + Math.sin(performance.now() * 0.005) * 0.012;
-  if (mlen > 0.1) {
-    handGroup.position.x = 0.05 + Math.sin(performance.now() * 0.012) * 0.018;
-  } else {
-    handGroup.position.x = 0.05;
-  }
-
+  camera.position.set(P.pos.x, 1.7 + Math.sin(P.bob) * 0.035, P.pos.z);
+  camera.rotation.set(P.pitch, P.yaw, 0);
+  aimT += dt; if (aimT > 0.06) { aimT = 0; updateAim(); updateGhost(); }
+  updateItems(dt); updateMachines(dt); updateDetector(dt);
+  // viewmodel
+  vmSwing = Math.max(0, vmSwing - dt * 4);
+  vm.rotation.x = -vmSwing * 0.7; vm.position.y = -0.36 + Math.sin(P.bob * 0.5) * 0.012 - vmSwing * 0.05;
+  vm.visible = !buildType;
+  if (vmHay) { const cap = toolCap(S.tool), fr = S.load / Math.max(1, cap); vmHay.visible = S.load > 0; const sc = S.tool === 'hand' ? 0.35 + fr * 0.2 : 0.5 + fr * (S.tool === 'wheelbarrow' ? 3 : S.tool === 'bucket' ? 1.4 : 1.3); vmHay.scale.set(sc, sc * 0.8, sc); }
+  hudT += dt; if (hudT > 0.12) { hudT = 0; updateHUD(); }
+  secT += dt; if (secT > 1) { secT = 0; drawClock(); S.player = { x: P.pos.x, z: P.pos.z, yaw: P.yaw, pitch: P.pitch }; saveT++; if (saveT % 5 === 0) save(); }
+  recT += dt; if (recT > 5) { recT = 0; drawRecords(); }
   renderer.render(scene, camera);
 }
-tick();
+function updateHUD() {
+  $('money').textContent = fmt$(S.money);
+  $('hayleft').textContent = fmtN(S.hay) + ' HAY LEFT';
+  const now = performance.now(); earnWin = earnWin.filter(e => now - e.t < 60000);
+  const per = earnWin.reduce((a, e) => a + e.v, 0); $('rate').textContent = fmt$(per) + '/min'; if (per > (S.cnt.best || 0)) S.cnt.best = per;
+  $('stam').firstChild.style.width = (S.stamina * 100) + '%';
+  const cap = toolCap(S.tool);
+  const el = $('load'); if (S.load > 0 && S.tool !== 'detector') { el.textContent = S.load >= cap ? 'FULL' : `${fmtN(S.load)} / ${fmtN(cap)}`; el.style.opacity = 1; } else if (el.textContent !== 'FULL') el.style.opacity = 0; else el.style.opacity = 0;
+  if (!buildType) $('blabel').textContent = '';
+  if ($('tree').classList.contains('open')) $('tree-m').textContent = fmt$(S.money);
+  renderPrompts(); updateMission();
+}
 
-window.__PAJAR = {
-  state,
-  renderer,
-  scene,
-  camera,
-  player,
-  strawCount: VISUAL_STRAW,
-  hayHeight: HAY_HEIGHT,
-  fov: FOV,
-  started: () => started,
-  forceStart: () => { started = true; startGate.style.display = 'none'; },
-  teleport: (x, z) => { player.pos.x = x; player.pos.z = z; },
-  lookAt: (yaw, pitch) => { player.yaw = yaw; player.pitch = pitch ?? player.pitch; },
-};
-console.log('[FindTheNeedle] strawCount=', VISUAL_STRAW, 'hayHeight=', HAY_HEIGHT, 'fov=', FOV);
+// ================== INPUT WIRING ==================
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  keys[e.code] = true;
+  if (e.repeat) return;
+  if (e.code === 'Tab') { e.preventDefault(); if (started) toggleTree(); return; }
+  if (e.code === 'Escape') { for (const id of ['tree', 'cat', 'shop', 'rakep', 'cabp', 'found']) closePanel(id); cancelBuild(); return; }
+  if (!started) return;
+  if (e.code === 'KeyB') toggleCat();
+  if (e.code === 'KeyE') onE();
+  if (e.code === 'KeyF') onF();
+  if (e.code === 'KeyQ') onQ();
+  if (e.code === 'KeyX') xHeld = true;
+  if (e.code === 'KeyR' && buildType) { placeRot += Math.PI / 4; inc('rotated'); }
+  if (e.code === 'KeyC' && buildType) { placeD = Math.max(2, placeD - 0.5); inc('distMoved'); }
+  if (e.code === 'KeyV' && buildType) { placeD = Math.min(12, placeD + 0.5); inc('distMoved'); }
+  const m = /^Digit([1-6])$/.exec(e.code);
+  if (m && !anyPanel()) { if (m[1] === '4' && has('conveyor')) equipBuild('belt'); else if (!buildType) { const t = S.slots[+m[1] - 1]; if (t) setTool(t); } }
+});
+addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'KeyX') { xHeld = false; } });
+addEventListener('wheel', e => { if (buildType) { placeD = Math.max(2, Math.min(12, placeD + (e.deltaY < 0 ? 0.5 : -0.5))); inc('distMoved'); } }, { passive: true });
+canvas.addEventListener('mousedown', e => {
+  if (IS_TOUCH || !started) return;
+  if (!document.pointerLockElement) { canvas.requestPointerLock?.(); }
+  if (e.button === 0) { lmbHeld = true; onLMB(); } else if (e.button === 2) onRMB();
+});
+addEventListener('mouseup', e => { if (e.button === 0) lmbHeld = false; });
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('mousemove', e => { if (document.pointerLockElement !== canvas) return; P.yaw -= e.movementX * 0.0022; P.pitch = Math.max(-1.45, Math.min(1.45, P.pitch - e.movementY * 0.0022)); });
+// touch: joystick + look + buttons
+{
+  const jz = $('joyz'), jb = $('joyb'), jk = $('joyk'); let jid = null;
+  const setK = (dx, dy) => { const l = Math.hypot(dx, dy) || 1, cl = Math.min(l, 44), x = dx / l * cl, y = dy / l * cl; jk.style.transform = `translate(${x}px,${y}px)`; mv.x = x / 44; mv.y = -y / 44; };
+  jz.addEventListener('pointerdown', e => { e.preventDefault(); jid = e.pointerId; jz.setPointerCapture(jid); const r = jb.getBoundingClientRect(); setK(e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2); });
+  jz.addEventListener('pointermove', e => { if (e.pointerId !== jid) return; const r = jb.getBoundingClientRect(); setK(e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2); });
+  const endJ = e => { if (e.pointerId !== jid) return; jid = null; jk.style.transform = ''; mv.x = mv.y = 0; };
+  jz.addEventListener('pointerup', endJ); jz.addEventListener('pointercancel', endJ);
+  const lz = $('lookz'); const looks = new Map();
+  lz.addEventListener('pointerdown', e => { looks.set(e.pointerId, [e.clientX, e.clientY]); lz.setPointerCapture(e.pointerId); });
+  lz.addEventListener('pointermove', e => { const l = looks.get(e.pointerId); if (!l) return; P.yaw -= (e.clientX - l[0]) * 0.005; P.pitch = Math.max(-1.45, Math.min(1.45, P.pitch - (e.clientY - l[1]) * 0.005)); looks.set(e.pointerId, [e.clientX, e.clientY]); });
+  const endL = e => looks.delete(e.pointerId); lz.addEventListener('pointerup', endL); lz.addEventListener('pointercancel', endL);
+  const btn = (id, down, up) => { const b = $(id); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); b.classList.add('held'); down(); }); const u = e => { b.classList.remove('held'); up && up(); }; b.addEventListener('pointerup', u); b.addEventListener('pointercancel', u); b.addEventListener('pointerleave', u); };
+  btn('tb-lmb', () => { lmbHeld = true; onLMB(); }, () => { lmbHeld = false; });
+  btn('tb-rmb', onRMB); btn('tb-e', onE); btn('tb-f', onF); btn('tb-tab', toggleTree);
+  btn('tb-x', () => { xHeld = true; }, () => { xHeld = false; });
+  btn('tb-r', () => { placeRot += Math.PI / 4; inc('rotated'); });
+  btn('tb-near', () => { placeD = Math.max(2, placeD - 0.75); inc('distMoved'); });
+  btn('tb-far', () => { placeD = Math.min(12, placeD + 0.75); inc('distMoved'); });
+  btn('tb-sp', () => { sprintBtn = !sprintBtn; $('tb-sp').classList.toggle('held', sprintBtn); });
+}
+$('gate-go').onclick = () => { started = true; closePanel('gate'); if (!IS_TOUCH) canvas.requestPointerLock?.(); tip('Look at the haystack and hold LMB to pull out hay.'); };
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+addEventListener('beforeunload', save);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+// periodic tips like the real game
+const TIPS = ['Press E at a machine to turn it off. A machine that is off uses no power.', 'Belts jam when you pile on too much. Faster Belt Motor fixes that.', 'Carry hay without Shift, or you will drop it.', 'The needle could be in any load. A scanner on the belt checks everything that passes.', 'Hold X on anything you built to take it down. You get all your money back.'];
+let tipI = 0; setInterval(() => { if (started && !anyPanel()) tip(TIPS[tipI++ % TIPS.length], 4200); }, 75000);
+
+// init
+S.slots = S.slots && S.slots.length ? S.slots : ['hand']; if (!S.slots.includes('hand')) S.slots.unshift('hand');
+if (!S.slots.includes(S.tool)) S.tool = 'hand';
+refreshPriceSign(); buildVM(); renderSlots(); syncGroundTools(); drawRecords(); updateAim(); updateHUD();
+window.__game = { updateAim, updateItems, updateGhost, updatePower, cancelBuild, S, items, segs, builds, P, aim: () => aim, onLMB, onRMB, onE, equipBuild, placeBuild, save, THREE, setTool, get started() { return started; } };
+tick();
 </script>
 </body>
 </html>
