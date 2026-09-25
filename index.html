@@ -171,6 +171,22 @@ body.touch #touch{display:block}
 #loading .bar{width:min(420px,80vw);height:4px;background:#2a2822;margin-top:12px}
 #loading .bar i{display:block;height:100%;width:0;background:#f2d45c;transition:width .15s}
 #loading .lt{font:500 13px "Barlow";color:#9a968a;margin-top:16px}
+#cloud{position:absolute;left:12px;bottom:max(26px,calc(env(safe-area-inset-bottom) + 20px));font:700 11px "Barlow Condensed";letter-spacing:.06em;color:#bdb8a8;text-shadow:0 1px 3px #000;display:none;pointer-events:none}
+body.ingame #cloud{display:block}
+#cloud.offline{color:#e59a5a}#cloud.saved{color:#9fd08a}
+.cloudbox{width:100%;max-width:460px;font:500 13px Barlow;color:#d8d4c8}
+.cloudbox .cl-code{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cloudbox .cl-code b{font:800 22px "Barlow Condensed";letter-spacing:.12em;color:#f4f1e6;background:rgba(255,255,255,.06);border:1px dashed #6b5a2a;padding:2px 10px;user-select:all}
+.cloudbox button{background:#2a2924;color:#e8e6dc;border:1px solid #4a473d;font:800 13px "Barlow Condensed";padding:6px 12px;cursor:pointer;letter-spacing:.04em}
+.cloudbox button.go{background:#e9c64a;color:#1a1400;border-color:#e9c64a}
+.cloudbox .cl-st{font:700 12px "Barlow Condensed";color:#9a968a;letter-spacing:.05em}
+.cloudbox .cl-st.saved{color:#9fd08a}.cloudbox .cl-st.offline{color:#e59a5a}
+.cloudbox .cl-hint{font-size:12px;color:#9a968a;margin:4px 0 6px}
+.cloudbox .cl-lbl{font:800 12px "Barlow Condensed";color:#bdb8a8;letter-spacing:.1em;margin-top:6px}
+.cloudbox .cl-row{display:flex;gap:6px;margin-top:4px}
+.cloudbox input{flex:1;min-width:0;background:rgba(0,0,0,.4);border:1px solid #4a473d;color:#f4f1e6;font:700 16px "Barlow Condensed";letter-spacing:.1em;padding:6px 8px;text-transform:uppercase;pointer-events:auto}
+.cloudbox .cl-msg{font-size:12px;min-height:15px;margin-top:4px;color:#e59a5a}
+.cloudbox .cl-msg.ok{color:#9fd08a}
 #pause{z-index:55;align-items:center;justify-content:center}
 #pause .box{width:min(440px,94vw);max-height:92vh;overflow-y:auto;background:rgba(16,15,13,.97);border:1px solid #6b5a2a;padding:16px 18px}
 #pause h2{font:800 30px "Barlow Condensed";color:#f2d45c;margin-bottom:8px}
@@ -205,7 +221,7 @@ body:not(.ingame) #hud,body:not(.ingame) #touch{display:none}
   <div id="blabel"></div>
   <div id="hold"><i></i></div>
   <div id="det"></div>
-  <div id="stam"><i></i></div>
+  <div id="stam"><i></i></div><div id="cloud"></div>
   <div id="contract"></div>
   <div id="bottom"><div id="slots"></div><div id="prompts"></div></div>
 </div>
@@ -256,6 +272,14 @@ body:not(.ingame) #hud,body:not(.ingame) #touch{display:none}
   <div class="gh" data-i18n="g_language"></div><div class="langs" id="pause-langs"></div>
   <div class="gh"><span data-i18n="sens"></span></div><input type="range" id="pause-sens" min="0.4" max="2.5" step="0.1" value="1" />
   <div class="gh" data-i18n="quality"></div><div class="langs" id="pause-q"><button data-q="low" data-i18n="q_low"></button><button data-q="high" data-i18n="q_high"></button></div>
+  <div class="gh" data-i18n="cloud_title"></div>
+  <div class="cloudbox" id="pause-cloud">
+      <div class="cl-code"><span><span data-i18n="cloud_code"></span>:</span> <b class="cl-c">—</b> <button class="cl-copy" data-i18n="cloud_copy"></button> <span class="cl-st"></span></div>
+      <div class="cl-hint" data-i18n="cloud_hint"></div>
+      <div class="cl-lbl" data-i18n="cloud_load"></div>
+      <div class="cl-row"><input class="cl-in" maxlength="16" autocomplete="off" autocapitalize="characters" spellcheck="false" data-i18n-ph="cloud_ph" /><button class="cl-go go" data-i18n="cloud_load_btn"></button></div>
+      <div class="cl-msg"></div>
+    </div>
   <button class="big alt" id="pause-new" data-i18n="g_newrun"></button>
   <button class="big alt" id="pause-title" data-i18n="to_title"></button>
 </div></div>
@@ -267,6 +291,14 @@ body:not(.ingame) #hud,body:not(.ingame) #touch{display:none}
     <button class="gi sub" id="gate-new" data-i18n="g_newrun"></button>
     <div class="gh" data-i18n="g_language">LANGUAGE</div>
     <div class="langs" id="gate-langs"></div>
+    <div class="gh" data-i18n="cloud_title"></div>
+    <div class="cloudbox" id="gate-cloud">
+      <div class="cl-code"><span><span data-i18n="cloud_code"></span>:</span> <b class="cl-c">—</b> <button class="cl-copy" data-i18n="cloud_copy"></button> <span class="cl-st"></span></div>
+      <div class="cl-hint" data-i18n="cloud_hint"></div>
+      <div class="cl-lbl" data-i18n="cloud_load"></div>
+      <div class="cl-row"><input class="cl-in" maxlength="16" autocomplete="off" autocapitalize="characters" spellcheck="false" data-i18n-ph="cloud_ph" /><button class="cl-go go" data-i18n="cloud_load_btn"></button></div>
+      <div class="cl-msg"></div>
+    </div>
   </div>
   <div class="gm" id="g-size" style="display:none">
     <div class="gh" data-i18n="g_howmuch"></div>
@@ -400,6 +432,23 @@ I18N.en = {
   s39_t: 'Stretch your legs', s39_b: 'Hold <b>Shift</b> to run with empty hands. The bar at the bottom left is your stamina. Run for three seconds.',
   s40_t: 'Find the needle', s40_b: 'Walk round the pile with the detector on. When the beeps turn into a scream, press <b>LMB</b> to dig. Or let the scanner catch one on the belt.',
   s41_t: 'Fill the cabinet', s41_b: 'There are more needles in the pile, and more kinds. Keep digging, keep the belts running, and fill every drawer.',
+  cloud_title: "CLOUD SAVE",
+  cloud_code: "Your save code",
+  cloud_copy: "COPY",
+  cloud_copied: "Copied!",
+  cloud_hint: "Write it down: with this code you can continue on any device or browser.",
+  cloud_load: "Load with code",
+  cloud_load_btn: "LOAD",
+  cloud_ph: "HAY-XXXX-XXXX",
+  cloud_saved: "Saved",
+  cloud_saving: "Saving…",
+  cloud_offline: "Offline · saved on this device",
+  cloud_connecting: "Connecting…",
+  cloud_bad_code: "That code was not found.",
+  cloud_toomany: "Too many tries. Wait a few minutes.",
+  cloud_err: "Could not reach the server. Try again.",
+  cloud_loading: "Loading your save…",
+  cloud_replace: "Loading a code replaces the progress on this device.",
 };
 
 I18N.es = {
@@ -514,6 +563,23 @@ I18N.es = {
   s39_t: 'Estira las piernas', s39_b: 'Mantén <b>Shift</b> para correr con las manos vacías. La barra de abajo a la izquierda es tu aguante. Corre tres segundos.',
   s40_t: 'Encuentra la aguja', s40_b: 'Rodea el pajar con el detector encendido. Cuando los pitidos se vuelvan un chillido, pulsa <b>clic izquierdo</b> para cavar. O deja que el escáner la pille en la cinta.',
   s41_t: 'Llena el armario', s41_b: 'Hay más agujas en el pajar, y de más tipos. Sigue cavando, mantén las cintas en marcha y llena todos los cajones.',
+  cloud_title: "GUARDADO EN LA NUBE",
+  cloud_code: "Tu código de guardado",
+  cloud_copy: "COPIAR",
+  cloud_copied: "¡Copiado!",
+  cloud_hint: "Apúntalo: con este código puedes seguir en cualquier dispositivo o navegador.",
+  cloud_load: "Cargar con código",
+  cloud_load_btn: "CARGAR",
+  cloud_ph: "HAY-XXXX-XXXX",
+  cloud_saved: "Guardado",
+  cloud_saving: "Guardando…",
+  cloud_offline: "Sin conexión · guardado en este dispositivo",
+  cloud_connecting: "Conectando…",
+  cloud_bad_code: "No se ha encontrado ese código.",
+  cloud_toomany: "Demasiados intentos. Espera unos minutos.",
+  cloud_err: "No se pudo conectar con el servidor. Inténtalo de nuevo.",
+  cloud_loading: "Cargando tu partida…",
+  cloud_replace: "Cargar un código sustituye el progreso de este dispositivo.",
 };
 
 I18N.pt = {
@@ -628,6 +694,23 @@ I18N.pt = {
   s39_t: 'Estique as pernas', s39_b: 'Segure <b>Shift</b> para correr de mãos vazias. A barra no canto inferior esquerdo é seu fôlego. Corra por três segundos.',
   s40_t: 'Encontre a agulha', s40_b: 'Contorne o palheiro com o detector ligado. Quando os bipes virarem um grito, aperte o <b>botão esquerdo</b> para cavar. Ou deixe o scanner pegá-la na esteira.',
   s41_t: 'Encha o armário', s41_b: 'Há mais agulhas no palheiro, e de mais tipos. Continue cavando, mantenha as esteiras rodando e encha todas as gavetas.',
+  cloud_title: "SALVAMENTO NA NUVEM",
+  cloud_code: "Seu código de salvamento",
+  cloud_copy: "COPIAR",
+  cloud_copied: "Copiado!",
+  cloud_hint: "Anote: com este código você continua em qualquer dispositivo ou navegador.",
+  cloud_load: "Carregar com código",
+  cloud_load_btn: "CARREGAR",
+  cloud_ph: "HAY-XXXX-XXXX",
+  cloud_saved: "Salvo",
+  cloud_saving: "Salvando…",
+  cloud_offline: "Offline · salvo neste dispositivo",
+  cloud_connecting: "Conectando…",
+  cloud_bad_code: "Esse código não foi encontrado.",
+  cloud_toomany: "Tentativas demais. Espere alguns minutos.",
+  cloud_err: "Não foi possível falar com o servidor. Tente de novo.",
+  cloud_loading: "Carregando seu jogo…",
+  cloud_replace: "Carregar um código substitui o progresso neste dispositivo.",
 };
 
 I18N.fr = {
@@ -742,6 +825,23 @@ I18N.fr = {
   s39_t: 'Dégourdis-toi les jambes', s39_b: 'Maintiens <b>Shift</b> pour courir les mains vides. La barre en bas à gauche est ton endurance. Cours trois secondes.',
   s40_t: "Trouve l'aiguille", s40_b: 'Fais le tour de la meule avec le détecteur allumé. Quand les bips deviennent un cri, fais <b>clic gauche</b> pour creuser. Ou laisse le scanner l’attraper sur le tapis.',
   s41_t: "Remplis l'armoire", s41_b: "Il y a d'autres aiguilles dans la meule, et d'autres sortes. Continue à creuser, fais tourner les tapis et remplis chaque tiroir.",
+  cloud_title: "SAUVEGARDE EN LIGNE",
+  cloud_code: "Ton code de sauvegarde",
+  cloud_copy: "COPIER",
+  cloud_copied: "Copié !",
+  cloud_hint: "Note-le : avec ce code, tu peux continuer sur n'importe quel appareil ou navigateur.",
+  cloud_load: "Charger avec un code",
+  cloud_load_btn: "CHARGER",
+  cloud_ph: "HAY-XXXX-XXXX",
+  cloud_saved: "Sauvegardé",
+  cloud_saving: "Sauvegarde…",
+  cloud_offline: "Hors ligne · sauvegardé sur cet appareil",
+  cloud_connecting: "Connexion…",
+  cloud_bad_code: "Ce code est introuvable.",
+  cloud_toomany: "Trop d’essais. Attends quelques minutes.",
+  cloud_err: "Impossible de joindre le serveur. Réessaie.",
+  cloud_loading: "Chargement de ta partie…",
+  cloud_replace: "Charger un code remplace la progression sur cet appareil.",
 };
 
 I18N.de = {
@@ -856,6 +956,23 @@ I18N.de = {
   s39_t: 'Vertritt dir die Beine', s39_b: 'Halte <b>Shift</b>, um mit leeren Händen zu rennen. Die Leiste unten links ist deine Ausdauer. Renne drei Sekunden.',
   s40_t: 'Finde die Nadel', s40_b: 'Geh mit eingeschaltetem Detektor um den Haufen. Wenn das Piepen zum Schrei wird, klick <b>links</b> zum Graben. Oder lass den Scanner sie auf dem Band erwischen.',
   s41_t: 'Füll den Schrank', s41_b: 'Im Haufen gibt es noch mehr Nadeln, und mehr Arten. Grab weiter, halte die Bänder am Laufen und füll jede Schublade.',
+  cloud_title: "CLOUD-SPEICHER",
+  cloud_code: "Dein Speichercode",
+  cloud_copy: "KOPIEREN",
+  cloud_copied: "Kopiert!",
+  cloud_hint: "Schreib ihn auf: Mit diesem Code spielst du auf jedem Gerät oder Browser weiter.",
+  cloud_load: "Mit Code laden",
+  cloud_load_btn: "LADEN",
+  cloud_ph: "HAY-XXXX-XXXX",
+  cloud_saved: "Gespeichert",
+  cloud_saving: "Speichert…",
+  cloud_offline: "Offline · auf diesem Gerät gespeichert",
+  cloud_connecting: "Verbinde…",
+  cloud_bad_code: "Dieser Code wurde nicht gefunden.",
+  cloud_toomany: "Zu viele Versuche. Warte ein paar Minuten.",
+  cloud_err: "Server nicht erreichbar. Versuch es noch einmal.",
+  cloud_loading: "Spielstand wird geladen…",
+  cloud_replace: "Ein Code ersetzt den Fortschritt auf diesem Gerät.",
 };
 
 I18N.it = {
@@ -970,6 +1087,23 @@ I18N.it = {
   s39_t: 'Sgranchisciti le gambe', s39_b: 'Tieni premuto <b>Shift</b> per correre a mani vuote. La barra in basso a sinistra è la tua resistenza. Corri per tre secondi.',
   s40_t: "Trova l'ago", s40_b: 'Gira intorno al pagliaio con il detector acceso. Quando i bip diventano un urlo, fai <b>clic sinistro</b> per scavare. Oppure lascia che lo scanner lo prenda sul nastro.',
   s41_t: "Riempi l'armadietto", s41_b: 'Nel pagliaio ci sono altri aghi, e di altri tipi. Continua a scavare, fai girare i nastri e riempi ogni cassetto.',
+  cloud_title: "SALVATAGGIO ONLINE",
+  cloud_code: "Il tuo codice di salvataggio",
+  cloud_copy: "COPIA",
+  cloud_copied: "Copiato!",
+  cloud_hint: "Annotalo: con questo codice puoi continuare su qualsiasi dispositivo o browser.",
+  cloud_load: "Carica con codice",
+  cloud_load_btn: "CARICA",
+  cloud_ph: "HAY-XXXX-XXXX",
+  cloud_saved: "Salvato",
+  cloud_saving: "Salvataggio…",
+  cloud_offline: "Offline · salvato su questo dispositivo",
+  cloud_connecting: "Connessione…",
+  cloud_bad_code: "Codice non trovato.",
+  cloud_toomany: "Troppi tentativi. Aspetta qualche minuto.",
+  cloud_err: "Impossibile raggiungere il server. Riprova.",
+  cloud_loading: "Caricamento della partita…",
+  cloud_replace: "Caricare un codice sostituisce i progressi su questo dispositivo.",
 };
 
 
@@ -1075,12 +1209,15 @@ function load() {
   S.found = (S.found || []).filter(x => typeof x === 'number');
   S.size = SIZE_KEY;
 }
-let saveT = 0, noSave = false;
+let saveT = 0, noSave = false, onSaved = null;
+function saveObj() { return Object.assign({}, S, { builds: builds.filter(b => !b.pre).map(b => b.ser()) }); }
 function save() {
   if (noSave) return;
   try {
-    const d = Object.assign({}, S, { builds: builds.filter(b => !b.pre).map(b => b.ser()) });
+    S.savedAt = Date.now();   // v6: timestamp so local vs cloud can pick the newest
+    const d = saveObj();
     localStorage.setItem(SAVE_KEY, JSON.stringify(d));
+    if (onSaved) onSaved(d);
   } catch (_) {}
 }
 load();
@@ -2379,7 +2516,8 @@ document.addEventListener('mousemove', e => { if (document.pointerLockElement !=
 }
 addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
 addEventListener('beforeunload', save);
-document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { save(); cloudBeacon(); } });
+addEventListener('pagehide', () => { save(); cloudBeacon(); });
 
 // periodic tips like the real game
 let tipI = 0; setInterval(() => { if (started && !anyPanel()) tip('tips_' + (tipI++ % 5), 4200); }, 75000);
@@ -2409,7 +2547,9 @@ function setLang(l) { if (!LANGS.includes(l)) return; LANG = l; try { localStora
 for (const id of ['gate-langs', 'pause-langs']) $(id).addEventListener('click', e => { const b = e.target.closest('[data-lang]'); if (b) { e.stopPropagation(); setLang(b.dataset.lang); } });
 
 // ================== START SCREEN / PAUSE ==================
+let startWanted = false;
 function startGame() {
+  if (playLock) { startWanted = true; return; }
   closePanel('gate'); started = true; document.body.classList.add('ingame'); if (!IS_TOUCH) canvas.requestPointerLock?.();
   if (!hadSave || !S.cnt.sold) tip('tip_start');
 }
@@ -2420,7 +2560,7 @@ $('g-size').addEventListener('click', e => {
   const b = e.target.closest('[data-size]'); if (!b) return;
   // new run: wipe the save, remember the pile size, reload and start straight away ("SHAPING THE PILE")
   noSave = true;
-  try { localStorage.removeItem(SAVE_KEY); localStorage.setItem('ftn-size', b.dataset.size); sessionStorage.setItem('ftn-autostart', '1'); } catch (_) {}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({ size: b.dataset.size, savedAt: Date.now() })); localStorage.setItem('ftn-size', b.dataset.size); sessionStorage.setItem('ftn-autostart', '1'); } catch (_) {}
   location.reload();
 });
 let pauseByUser = false;
@@ -2447,15 +2587,122 @@ $('pause-q').addEventListener('click', e => { const b = e.target.closest('[data-
 $('pause-new').onclick = () => { save(); closePanel('pause'); started = false; document.body.classList.remove('ingame'); hadSave = true; openPanel('gate'); $('gate-new').onclick(); applyLang(); };
 $('pause-title').onclick = () => { save(); closePanel('pause'); started = false; document.body.classList.remove('ingame'); hadSave = true; applyLang(); $('gate-back').onclick(); openPanel('gate'); };
 
+// ================== CLOUD SAVE (v6) ==================
+// Anonymous account: random id + secret token (only in this browser) + short recovery code (HAY-XXXX-XXXX).
+// The server stores the save JSON; localStorage stays as offline fallback; newest timestamp wins on load.
+const CLOUD_KEY = 'ftn-cloud', API = '/api/';
+let cloud = null; try { cloud = JSON.parse(localStorage.getItem(CLOUD_KEY) || 'null'); if (!cloud || !cloud.id || !cloud.token) cloud = null; } catch (_) {}
+let cloudSt = 'connecting', cloudMin = 10, cloudBusy = false, cloudNext = 0, cloudSig = '', cloudPending = null, cloudReady = false, playLock = true;
+const cloudSigOf = d => { const c = Object.assign({}, d); delete c.savedAt; delete c.player; delete c.stamina; return JSON.stringify(c); };
+onSaved = d => { cloudPending = d; };
+function unlockPlay() { if (!playLock) return; playLock = false; if (startWanted && !started && !noSave) { startWanted = false; startGame(); } }
+setTimeout(unlockPlay, 2500);   // never block PLAY for long if the network is slow
+async function api(path, opt) {
+  const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 15000);
+  try { const r = await fetch(API + path, Object.assign({ signal: ctl.signal, cache: 'no-store' }, opt)); const j = await r.json().catch(() => ({})); j.status = r.status; return j; }
+  finally { clearTimeout(to); }
+}
+const jpost = (path, body) => api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+function setCloud(st) { cloudSt = st; renderCloud(); }
+function renderCloud() {
+  const label = '☁ ' + t('cloud_' + cloudSt);
+  $('cloud').textContent = label; $('cloud').className = cloudSt;
+  document.querySelectorAll('.cloudbox').forEach(b => { b.querySelector('.cl-c').textContent = cloud ? cloud.code : '—'; const s = b.querySelector('.cl-st'); s.textContent = label; s.className = 'cl-st ' + cloudSt; });
+}
+onLang(renderCloud);
+function storeCloud(j) { cloud = { id: j.id, token: j.token, code: j.code }; try { localStorage.setItem(CLOUD_KEY, JSON.stringify(cloud)); } catch (_) {} if (j.minInterval) cloudMin = Math.max(10, j.minInterval); renderCloud(); }
+let acctP = null;
+function ensureAccount() {
+  if (cloud) return Promise.resolve(true);
+  if (!acctP) acctP = (async () => {
+    try { const j = await jpost('new', {}); if (j.ok) { storeCloud(j); return true; } } catch (_) {}
+    setCloud('offline'); return false;
+  })().finally(() => { acctP = null; });
+  return acctP;
+}
+function applyCloudSave(sv, ts) {
+  noSave = true;
+  try {
+    if (sv) { sv.savedAt = ts || sv.savedAt || Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(sv)); if (sv.size) localStorage.setItem('ftn-size', sv.size); }
+    else localStorage.removeItem(SAVE_KEY);
+    sessionStorage.setItem('ftn-cloud-applied', '1');
+  } catch (_) {}
+  location.reload();
+}
+async function cloudInit() {
+  const justApplied = sessionStorage.getItem('ftn-cloud-applied'); sessionStorage.removeItem('ftn-cloud-applied');
+  try {
+    if (await ensureAccount()) {
+      let j = await api('save?id=' + encodeURIComponent(cloud.id), { headers: { Authorization: 'Bearer ' + cloud.token } });
+      if (j.status === 403 || j.status === 404) { cloud = null; try { localStorage.removeItem(CLOUD_KEY); } catch (_) {} if (await ensureAccount()) j = { ok: true, t: 0, save: null }; }
+      if (j.ok) {
+        if (j.minInterval) cloudMin = Math.max(10, j.minInterval);
+        if (j.save && j.t > (S.savedAt || 0) + 1000 && !started && !justApplied) { applyCloudSave(j.save, j.t); return; }
+        if (j.save && j.t >= (S.savedAt || 0)) cloudSig = cloudSigOf(j.save);
+        setCloud('saved');
+      } else if (cloud) setCloud('offline');
+    }
+  } catch (_) { setCloud('offline'); }
+  cloudReady = true; unlockPlay();
+  if (!cloudPending) cloudPending = Object.assign(saveObj(), { savedAt: S.savedAt || Date.now() });   // migrates old local-only saves on first sync
+}
+async function cloudPush() {
+  if (cloudBusy || noSave || !cloudReady || Date.now() < cloudNext) return;
+  if (!cloud) { cloudNext = Date.now() + 30000; if (!(await ensureAccount())) return; }
+  const d = cloudPending; if (!d) return;
+  const sig = cloudSigOf(d); if (sig === cloudSig) { cloudPending = null; if (cloudSt !== 'saved') setCloud('saved'); return; }
+  cloudBusy = true; setCloud('saving');
+  try {
+    const j = await jpost('save', { id: cloud.id, token: cloud.token, t: d.savedAt || Date.now(), save: d });
+    if (j.ok || j.error === 'stale') { cloudSig = sig; if (cloudPending === d) cloudPending = null; cloudNext = Date.now() + cloudMin * 1000; setCloud('saved'); }
+    else if (j.error === 'soon') { cloudNext = Date.now() + (j.retryIn || cloudMin) * 1000; setCloud('saved'); }
+    else if (j.status === 403) { cloud = null; try { localStorage.removeItem(CLOUD_KEY); } catch (_) {} cloudNext = 0; setCloud('offline'); }
+    else { cloudNext = Date.now() + cloudMin * 1000; setCloud('offline'); }
+  } catch (_) { cloudNext = Date.now() + cloudMin * 1000; setCloud('offline'); }
+  cloudBusy = false;
+}
+setInterval(cloudPush, 2000);
+function cloudBeacon() {
+  if (!cloud || noSave || !navigator.sendBeacon) return;
+  try {
+    const d = saveObj(); d.savedAt = S.savedAt || Date.now();
+    if (cloudSigOf(d) === cloudSig) return;
+    const body = JSON.stringify({ id: cloud.id, token: cloud.token, t: d.savedAt, save: d, final: true });
+    if (body.length < 60000 && navigator.sendBeacon(API + 'save', new Blob([body], { type: 'text/plain' }))) cloudSig = cloudSigOf(d);
+  } catch (_) {}
+}
+async function restoreCode(box) {
+  const inp = box.querySelector('.cl-in'), msg = box.querySelector('.cl-msg');
+  const code = inp.value.trim().toUpperCase(); msg.className = 'cl-msg';
+  if (!/^[A-Z0-9-]{8,16}$/.test(code)) { msg.textContent = t('cloud_bad_code'); return; }
+  if (cloud && code.replace(/-/g, '') === cloud.code.replace(/-/g, '')) { msg.className = 'cl-msg ok'; msg.textContent = t('cloud_saved'); return; }
+  msg.className = 'cl-msg ok'; msg.textContent = t('cloud_loading');
+  try {
+    const j = await jpost('restore', { code });
+    if (j.ok) { storeCloud(j); applyCloudSave(j.save, j.t); return; }
+    msg.className = 'cl-msg'; msg.textContent = t(j.error === 'notfound' || j.status === 404 ? 'cloud_bad_code' : j.status === 429 ? 'cloud_toomany' : 'cloud_err');
+  } catch (_) { msg.className = 'cl-msg'; msg.textContent = t('cloud_err'); }
+}
+document.querySelectorAll('.cloudbox').forEach(box => {
+  box.querySelector('.cl-go').onclick = e => { e.stopPropagation(); restoreCode(box); };
+  box.querySelector('.cl-in').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') restoreCode(box); });
+  box.querySelector('.cl-in').addEventListener('keyup', e => e.stopPropagation());
+  box.querySelector('.cl-copy').onclick = async e => {
+    e.stopPropagation(); if (!cloud) return; const msg = box.querySelector('.cl-msg');
+    try { await navigator.clipboard.writeText(cloud.code); } catch (_) { const r = document.createRange(); r.selectNodeContents(box.querySelector('.cl-c')); getSelection().removeAllRanges(); getSelection().addRange(r); try { document.execCommand('copy'); } catch (_) {} }
+    msg.className = 'cl-msg ok'; msg.textContent = t('cloud_copied'); setTimeout(() => { if (msg.textContent === t('cloud_copied')) msg.textContent = ''; }, 1800);
+  };
+});
+
 // init
 S.slots = S.slots && S.slots.length ? S.slots : ['hand']; if (!S.slots.includes('hand')) S.slots.unshift('hand');
 if (!S.slots.includes(S.tool)) S.tool = 'hand';
-applyQuality(); buildVM(); syncGroundTools(); applyLang(); drawRecords(); updateAim(); updateHUD();
+applyQuality(); buildVM(); syncGroundTools(); applyLang(); renderCloud(); cloudInit(); drawRecords(); updateAim(); updateHUD();
 if (sessionStorage.getItem('ftn-autostart')) {
   sessionStorage.removeItem('ftn-autostart'); closePanel('gate'); openPanel('loading');
   let pr = 0; const iv = setInterval(() => { pr += 0.12 + Math.random() * 0.1; $('load-bar').style.width = Math.min(100, pr * 100) + '%'; if (pr >= 1) { clearInterval(iv); closePanel('loading'); startGame(); } }, 120);
 }
-window.__game = { setLang, applyLang, t, I18N, get LANG() { return LANG; }, openPause, renderTree, renderCat, renderShop, openCabinet, pinOrder, startGame, updateMission, HC, BAY, SHOP, updateAim, updateItems, updateGhost, updatePower, cancelBuild, S, items, segs, builds, P, aim: () => aim, onLMB, onRMB, onE, equipBuild, placeBuild, save, THREE, setTool, get started() { return started; } };
+window.__game = { setLang, applyLang, t, I18N, get LANG() { return LANG; }, openPause, renderTree, renderCat, renderShop, openCabinet, pinOrder, startGame, updateMission, HC, BAY, SHOP, updateAim, updateItems, updateGhost, updatePower, cancelBuild, S, items, segs, builds, P, aim: () => aim, onLMB, onRMB, onE, equipBuild, placeBuild, save, THREE, setTool, cloud: () => ({ acct: cloud, st: cloudSt, min: cloudMin, ready: cloudReady, sig: cloudSig }), cloudPush, get started() { return started; } };
 tick();
 </script>
 </body>
