@@ -45,6 +45,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1d1610;font-family:
 #blabel.bad{color:#ff4a3a}
 #hold{position:absolute;left:50%;top:calc(50% + 30px);width:60px;height:4px;margin-left:-30px;background:rgba(0,0,0,.5);display:none}
 #hold i{display:block;height:100%;width:0;background:#ff5a3a}
+#rm{position:absolute;left:50%;top:calc(50% + 34px);transform:translateX(-50%);display:none;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:28px;background:rgba(18,18,18,.78);border:2px solid #ff6b4a;color:#ffd6c8;font:800 16px "Barlow Condensed";letter-spacing:.02em;pointer-events:auto;touch-action:none;white-space:nowrap;user-select:none;-webkit-user-select:none;z-index:6;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+#rm.show{display:flex}
+#rm .ring{flex:none;width:30px;height:30px;border-radius:50%;background:conic-gradient(#ff6b4a calc(var(--p,0) * 360deg),rgba(255,255,255,.18) 0);position:relative}
+#rm .ring::after{content:'✕';position:absolute;inset:4px;border-radius:50%;background:#2a1a14;color:#ff8a6a;display:flex;align-items:center;justify-content:center;font:800 13px sans-serif}
+#rm.held{background:rgba(120,36,16,.9)}
+#rm.pre{border-color:#8a8a8a;color:#cfcfcf;padding-left:14px}#rm.pre .ring{display:none}
+#rm .k,#undo .k{display:inline-block;background:#f1f0ea;color:#111;font:800 12px "Barlow Condensed";padding:1px 5px;border-radius:3px;margin-right:2px}
+body.touch #rm{top:calc(50% + 40px);font-size:19px;padding:7px 18px 7px 7px}body.touch #rm .ring{width:38px;height:38px}body.touch #rm .ring::after{inset:5px;font-size:16px}
+#undo{position:absolute;left:50%;top:calc(50% + 92px);transform:translateX(-50%);display:none;align-items:center;gap:8px;padding:8px 16px;border-radius:22px;background:#e9c64a;color:#1a1400;font:800 16px "Barlow Condensed";pointer-events:auto;touch-action:none;white-space:nowrap;user-select:none;z-index:6;box-shadow:0 2px 8px rgba(0,0,0,.45);cursor:pointer}
+#undo .k{background:rgba(0,0,0,.2);color:#1a1400}
+body.touch #undo{font-size:18px;padding:10px 20px;top:calc(50% + 110px)}
+#tb-x{display:none!important}  /* v10: replaced by the contextual QUITAR button under the crosshair */
+@media (max-height:520px){body.touch #rm{top:calc(50% + 24px);left:auto;right:calc(50% + 8px);transform:none}body.touch #undo{top:calc(50% + 24px);left:calc(50% + 8px);transform:none}}
 #bottom{position:absolute;left:50%;bottom:max(6px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px}
 #slots{display:flex;gap:3px}
 .slot{width:40px;height:40px;background:rgba(22,22,22,.82);border:1px solid rgba(255,255,255,.12);position:relative;display:flex;align-items:center;justify-content:center;pointer-events:auto;cursor:pointer}
@@ -254,6 +267,8 @@ body:not(.ingame) #hud,body:not(.ingame) #touch{display:none}
   <div id="load"></div>
   <div id="blabel"></div>
   <div id="hold"><i></i></div>
+  <div id="rm"><span class="ring"></span><span id="rm-tx"></span></div>
+  <div id="undo"></div>
   <div id="det"></div>
   <div id="stam"><i></i></div><div id="cloud"></div>
   <div id="contract"></div>
@@ -365,7 +380,7 @@ I18N.en = {
   p_dropall: 'Drop all', p_droptool: 'Drop {x}', p_pickup: 'Pick up {x}', p_panel: 'Open panel', p_cab: 'Open the cabinet', p_feed: 'Feed the generator',
   p_off: 'Turn off', p_on: 'Turn on', p_shop: 'Shop', p_dismantle: 'Dismantle', p_catalogue: 'Build catalogue', p_startrun: 'Start run', p_placerun: 'Place run',
   p_cancel: 'Cancel', p_distance: 'Distance', p_place: 'Place', p_turn: 'Turn', p_det_on: 'Switch on', p_det_off: 'Switch off', p_dig: 'Dig here', p_pin: 'Pin the order', p_pause: 'Menu',
-  t_lmb: 'LMB', t_rmb: 'RMB<br>TIP', t_use: 'E<br>USE', t_throw: 'F<br>THROW', t_tree: 'TAB<br>TREE', t_x: 'HOLD<br>X', t_turn: 'R<br>TURN', t_run: 'RUN', t_place: 'PLACE', t_cancel: 'CANCEL',
+  t_lmb: 'LMB', t_rmb: 'RMB<br>TIP', t_use: 'E<br>USE', t_throw: 'F<br>THROW', t_tree: 'TAB<br>TREE', t_x: 'REMOVE', t_turn: 'R<br>TURN', t_run: 'RUN', t_place: 'PLACE', t_cancel: 'CANCEL',
   tree_title: 'TECH TREE', tree_search: 'search the tree', close: 'CLOSE', close_tab: 'CLOSE [TAB]', close_b: 'CLOSE [B]', ready: '{n} ready', owned: 'OWNED', locked: 'LOCKED', needs: 'Needs: {x}',
   tree_footer: '{a} of {b} levels bought  ·  click a card to buy  ·  Tab to close', coming_later: 'Coming later', coming_later_d: 'Compressor, wrapper, sprinklers… not in this web build yet.',
   cat_hand: 'HAND WORK', cat_yard: 'YARD BUILDING', cat_lines: 'HAY LINES', cat_power: 'POWER', cat_proc: 'PROCESSING', cat_auto: 'AUTOMATION', cat_water: 'WATER', cat_prosp: 'PROSPECTING', cat_sell: 'SELLING', cat_fit: 'FITNESS', group_belt: 'BELT UPGRADES',
@@ -494,6 +509,15 @@ I18N.en = {
   err_steep: "too steep for a belt",
   err_loop: "that would make a loop",
   b_belt_hint_touch: "Belt · $8/m · aim the end at another belt to join it (green ring)",
+  rm_btn: "REMOVE · +{m}",
+  rm_hold: "Hold: remove (+{m})",
+  rm_main: "The main belt can't be removed",
+  undo_btn: "↶ UNDO · +{m}",
+  p_undo: "Undo",
+  tip_undone: "Undone. You got {m} back.",
+  tip_rm_hint: "Made a mistake? Look at it and hold X to remove it, or press Ctrl+Z to undo. You get all the money back.",
+  tip_rm_hint_touch: "Made a mistake? Look at it and hold REMOVE, or tap UNDO. You get all the money back.",
+  s26_b_touch: "Look at something you built. Hold the <b>REMOVE</b> button under the crosshair until it goes. You get all your money back.",
 };
 
 I18N.es = {
@@ -506,7 +530,7 @@ I18N.es = {
   p_dropall: 'Soltar todo', p_droptool: 'Soltar {x}', p_pickup: 'Coger {x}', p_panel: 'Abrir panel', p_cab: 'Abrir el armario', p_feed: 'Alimentar el generador',
   p_off: 'Apagar', p_on: 'Encender', p_shop: 'Tienda', p_dismantle: 'Desmontar', p_catalogue: 'Catálogo de construcción', p_startrun: 'Empezar tramo', p_placerun: 'Colocar tramo',
   p_cancel: 'Cancelar', p_distance: 'Distancia', p_place: 'Colocar', p_turn: 'Girar', p_det_on: 'Encender', p_det_off: 'Apagar', p_dig: 'Cavar aquí', p_pin: 'Fijar el pedido', p_pause: 'Menú',
-  t_lmb: 'CLIC IZQ', t_rmb: 'CLIC DER<br>VACIAR', t_use: 'E<br>USAR', t_throw: 'F<br>LANZAR', t_tree: 'TAB<br>ÁRBOL', t_x: 'MANTÉN<br>X', t_turn: 'R<br>GIRAR', t_run: 'CORRER', t_place: 'COLOCAR', t_cancel: 'CANCELAR',
+  t_lmb: 'CLIC IZQ', t_rmb: 'CLIC DER<br>VACIAR', t_use: 'E<br>USAR', t_throw: 'F<br>LANZAR', t_tree: 'TAB<br>ÁRBOL', t_x: 'QUITAR', t_turn: 'R<br>GIRAR', t_run: 'CORRER', t_place: 'COLOCAR', t_cancel: 'CANCELAR',
   tree_title: 'ÁRBOL TECNOLÓGICO', tree_search: 'buscar en el árbol', close: 'CERRAR', close_tab: 'CERRAR [TAB]', close_b: 'CERRAR [B]', ready: 'listas: {n}', owned: 'COMPRADO', locked: 'BLOQUEADO', needs: 'Necesita: {x}',
   tree_footer: '{a} de {b} niveles comprados  ·  pulsa una carta para comprar  ·  Tab para cerrar', coming_later: 'Más adelante', coming_later_d: 'Compresora, envolvedora, aspersores… aún no están en esta versión web.',
   cat_hand: 'TRABAJO MANUAL', cat_yard: 'CONSTRUCCIÓN', cat_lines: 'LÍNEAS DE PAJA', cat_power: 'ENERGÍA', cat_proc: 'PROCESADO', cat_auto: 'AUTOMATIZACIÓN', cat_water: 'AGUA', cat_prosp: 'PROSPECCIÓN', cat_sell: 'VENTA', cat_fit: 'FORMA FÍSICA', group_belt: 'MEJORAS DE CINTA',
@@ -635,6 +659,15 @@ I18N.es = {
   err_steep: "demasiado empinada para una cinta",
   err_loop: "eso haría un bucle",
   b_belt_hint_touch: "Cinta · $8/m · apunta el final a otra cinta para unirla (aro verde)",
+  rm_btn: "QUITAR · +{m}",
+  rm_hold: "Mantener: quitar (+{m})",
+  rm_main: "La cinta principal no se puede quitar",
+  undo_btn: "↶ DESHACER · +{m}",
+  p_undo: "Deshacer",
+  tip_undone: "Deshecho. Te devuelven {m}.",
+  tip_rm_hint: "¿Te has equivocado? Míralo y mantén X para quitarlo, o pulsa Ctrl+Z para deshacer. Te devuelven todo el dinero.",
+  tip_rm_hint_touch: "¿Te has equivocado? Míralo y mantén QUITAR, o toca DESHACER. Te devuelven todo el dinero.",
+  s26_b_touch: "Apunta a algo que hayas construido. Mantén el botón <b>QUITAR</b> (bajo la mira) hasta que desaparezca. Te devuelven todo el dinero.",
 };
 
 I18N.pt = {
@@ -647,7 +680,7 @@ I18N.pt = {
   p_dropall: 'Largar tudo', p_droptool: 'Largar {x}', p_pickup: 'Pegar {x}', p_panel: 'Abrir painel', p_cab: 'Abrir o armário', p_feed: 'Alimentar o gerador',
   p_off: 'Desligar', p_on: 'Ligar', p_shop: 'Loja', p_dismantle: 'Desmontar', p_catalogue: 'Catálogo de construção', p_startrun: 'Iniciar trecho', p_placerun: 'Colocar trecho',
   p_cancel: 'Cancelar', p_distance: 'Distância', p_place: 'Colocar', p_turn: 'Girar', p_det_on: 'Ligar', p_det_off: 'Desligar', p_dig: 'Cavar aqui', p_pin: 'Fixar o pedido', p_pause: 'Menu',
-  t_lmb: 'BOTÃO ESQ', t_rmb: 'BOTÃO DIR<br>DESPEJAR', t_use: 'E<br>USAR', t_throw: 'F<br>ATIRAR', t_tree: 'TAB<br>ÁRVORE', t_x: 'SEGURE<br>X', t_turn: 'R<br>GIRAR', t_run: 'CORRER', t_place: 'COLOCAR', t_cancel: 'CANCELAR',
+  t_lmb: 'BOTÃO ESQ', t_rmb: 'BOTÃO DIR<br>DESPEJAR', t_use: 'E<br>USAR', t_throw: 'F<br>ATIRAR', t_tree: 'TAB<br>ÁRVORE', t_x: 'REMOVER', t_turn: 'R<br>GIRAR', t_run: 'CORRER', t_place: 'COLOCAR', t_cancel: 'CANCELAR',
   tree_title: 'ÁRVORE TECNOLÓGICA', tree_search: 'pesquisar na árvore', close: 'FECHAR', close_tab: 'FECHAR [TAB]', close_b: 'FECHAR [B]', ready: 'prontas: {n}', owned: 'COMPRADO', locked: 'BLOQUEADO', needs: 'Requer: {x}',
   tree_footer: '{a} de {b} níveis comprados  ·  clique numa carta para comprar  ·  Tab para fechar', coming_later: 'Em breve', coming_later_d: 'Compressor, embaladora, aspersores… ainda não estão nesta versão web.',
   cat_hand: 'TRABALHO MANUAL', cat_yard: 'CONSTRUÇÃO', cat_lines: 'LINHAS DE PALHA', cat_power: 'ENERGIA', cat_proc: 'PROCESSAMENTO', cat_auto: 'AUTOMAÇÃO', cat_water: 'ÁGUA', cat_prosp: 'PROSPECÇÃO', cat_sell: 'VENDA', cat_fit: 'FORMA FÍSICA', group_belt: 'MELHORIAS DE ESTEIRA',
@@ -776,6 +809,15 @@ I18N.pt = {
   err_steep: "íngreme demais para uma esteira",
   err_loop: "isso faria um circuito fechado",
   b_belt_hint_touch: "Esteira · $8/m · aponte o fim para outra esteira para ligar (anel verde)",
+  rm_btn: "REMOVER · +{m}",
+  rm_hold: "Segurar: remover (+{m})",
+  rm_main: "A esteira principal não pode ser removida",
+  undo_btn: "↶ DESFAZER · +{m}",
+  p_undo: "Desfazer",
+  tip_undone: "Desfeito. Você recebeu {m} de volta.",
+  tip_rm_hint: "Errou? Olhe para ele e segure X para remover, ou pressione Ctrl+Z para desfazer. Você recebe todo o dinheiro de volta.",
+  tip_rm_hint_touch: "Errou? Olhe para ele e segure REMOVER, ou toque em DESFAZER. Você recebe todo o dinheiro de volta.",
+  s26_b_touch: "Mire em algo que você construiu. Segure o botão <b>REMOVER</b> (sob a mira) até sumir. Você recebe todo o dinheiro de volta.",
 };
 
 I18N.fr = {
@@ -788,7 +830,7 @@ I18N.fr = {
   p_dropall: 'Tout lâcher', p_droptool: 'Poser {x}', p_pickup: 'Prendre {x}', p_panel: 'Ouvrir le panneau', p_cab: "Ouvrir l'armoire", p_feed: 'Alimenter le générateur',
   p_off: 'Éteindre', p_on: 'Allumer', p_shop: 'Boutique', p_dismantle: 'Démonter', p_catalogue: 'Catalogue de construction', p_startrun: 'Commencer le tronçon', p_placerun: 'Poser le tronçon',
   p_cancel: 'Annuler', p_distance: 'Distance', p_place: 'Poser', p_turn: 'Tourner', p_det_on: 'Allumer', p_det_off: 'Éteindre', p_dig: 'Creuser ici', p_pin: 'Épingler la commande', p_pause: 'Menu',
-  t_lmb: 'CLIC G', t_rmb: 'CLIC D<br>VIDER', t_use: 'E<br>UTILISER', t_throw: 'F<br>LANCER', t_tree: 'TAB<br>ARBRE', t_x: 'MAINT.<br>X', t_turn: 'R<br>TOURNER', t_run: 'COURIR', t_place: 'POSER', t_cancel: 'ANNULER',
+  t_lmb: 'CLIC G', t_rmb: 'CLIC D<br>VIDER', t_use: 'E<br>UTILISER', t_throw: 'F<br>LANCER', t_tree: 'TAB<br>ARBRE', t_x: 'RETIRER', t_turn: 'R<br>TOURNER', t_run: 'COURIR', t_place: 'POSER', t_cancel: 'ANNULER',
   tree_title: 'ARBRE TECHNOLOGIQUE', tree_search: "chercher dans l'arbre", close: 'FERMER', close_tab: 'FERMER [TAB]', close_b: 'FERMER [B]', ready: 'prêtes : {n}', owned: 'ACQUIS', locked: 'VERROUILLÉ', needs: 'Nécessite : {x}',
   tree_footer: '{a} niveaux achetés sur {b}  ·  clique sur une carte pour acheter  ·  Tab pour fermer', coming_later: 'Plus tard', coming_later_d: "Compresseur, enrubanneuse, arroseurs… pas encore dans cette version web.",
   cat_hand: 'TRAVAIL MANUEL', cat_yard: 'CONSTRUCTION', cat_lines: 'LIGNES DE FOIN', cat_power: 'ÉNERGIE', cat_proc: 'TRAITEMENT', cat_auto: 'AUTOMATISATION', cat_water: 'EAU', cat_prosp: 'PROSPECTION', cat_sell: 'VENTE', cat_fit: 'FORME', group_belt: 'AMÉLIORATIONS DE TAPIS',
@@ -917,6 +959,15 @@ I18N.fr = {
   err_steep: "trop raide pour un tapis",
   err_loop: "ça ferait une boucle",
   b_belt_hint_touch: "Tapis · 8 $/m · vise un autre tapis avec la fin pour les relier (anneau vert)",
+  rm_btn: "RETIRER · +{m}",
+  rm_hold: "Maintenir : retirer (+{m})",
+  rm_main: "Le tapis principal ne peut pas être retiré",
+  undo_btn: "↶ ANNULER · +{m}",
+  p_undo: "Annuler",
+  tip_undone: "Annulé. {m} remboursés.",
+  tip_rm_hint: "Une erreur ? Regarde-le et maintiens X pour le retirer, ou Ctrl+Z pour annuler. Tout est remboursé.",
+  tip_rm_hint_touch: "Une erreur ? Regarde-le et maintiens RETIRER, ou touche ANNULER. Tout est remboursé.",
+  s26_b_touch: "Vise quelque chose que tu as construit. Maintiens le bouton <b>RETIRER</b> (sous le viseur) jusqu'à ce qu'il disparaisse. Tout est remboursé.",
 };
 
 I18N.de = {
@@ -929,7 +980,7 @@ I18N.de = {
   p_dropall: 'Alles fallen lassen', p_droptool: '{x} ablegen', p_pickup: '{x} aufheben', p_panel: 'Panel öffnen', p_cab: 'Schrank öffnen', p_feed: 'Generator füttern',
   p_off: 'Ausschalten', p_on: 'Einschalten', p_shop: 'Laden', p_dismantle: 'Abbauen', p_catalogue: 'Baukatalog', p_startrun: 'Strecke beginnen', p_placerun: 'Strecke setzen',
   p_cancel: 'Abbrechen', p_distance: 'Abstand', p_place: 'Setzen', p_turn: 'Drehen', p_det_on: 'Einschalten', p_det_off: 'Ausschalten', p_dig: 'Hier graben', p_pin: 'Auftrag anheften', p_pause: 'Menü',
-  t_lmb: 'LMT', t_rmb: 'RMT<br>KIPPEN', t_use: 'E<br>NUTZEN', t_throw: 'F<br>WERFEN', t_tree: 'TAB<br>BAUM', t_x: 'HALTE<br>X', t_turn: 'R<br>DREHEN', t_run: 'RENNEN', t_place: 'SETZEN', t_cancel: 'ABBRUCH',
+  t_lmb: 'LMT', t_rmb: 'RMT<br>KIPPEN', t_use: 'E<br>NUTZEN', t_throw: 'F<br>WERFEN', t_tree: 'TAB<br>BAUM', t_x: 'ENTFERNEN', t_turn: 'R<br>DREHEN', t_run: 'RENNEN', t_place: 'SETZEN', t_cancel: 'ABBRUCH',
   tree_title: 'TECHNOLOGIEBAUM', tree_search: 'Baum durchsuchen', close: 'SCHLIESSEN', close_tab: 'SCHLIESSEN [TAB]', close_b: 'SCHLIESSEN [B]', ready: '{n} bereit', owned: 'GEKAUFT', locked: 'GESPERRT', needs: 'Benötigt: {x}',
   tree_footer: '{a} von {b} Stufen gekauft  ·  Karte anklicken zum Kaufen  ·  Tab zum Schließen', coming_later: 'Kommt später', coming_later_d: 'Presse, Wickler, Sprinkler… noch nicht in dieser Web-Version.',
   cat_hand: 'HANDARBEIT', cat_yard: 'HOFBAU', cat_lines: 'HEULINIEN', cat_power: 'STROM', cat_proc: 'VERARBEITUNG', cat_auto: 'AUTOMATISIERUNG', cat_water: 'WASSER', cat_prosp: 'SUCHE', cat_sell: 'VERKAUF', cat_fit: 'FITNESS', group_belt: 'BAND-UPGRADES',
@@ -1058,6 +1109,15 @@ I18N.de = {
   err_steep: "zu steil für ein Band",
   err_loop: "das wäre eine Schleife",
   b_belt_hint_touch: "Band · $8/m · Ende auf ein anderes Band richten zum Verbinden (grüner Ring)",
+  rm_btn: "ENTFERNEN · +{m}",
+  rm_hold: "Halten: entfernen (+{m})",
+  rm_main: "Das Hauptband kann nicht entfernt werden",
+  undo_btn: "↶ RÜCKGÄNGIG · +{m}",
+  p_undo: "Rückgängig",
+  tip_undone: "Rückgängig gemacht. {m} zurück.",
+  tip_rm_hint: "Vertan? Schau es an und halte X zum Entfernen, oder Strg+Z zum Rückgängigmachen. Du bekommst alles Geld zurück.",
+  tip_rm_hint_touch: "Vertan? Schau es an und halte ENTFERNEN, oder tippe RÜCKGÄNGIG. Du bekommst alles Geld zurück.",
+  s26_b_touch: "Ziele auf etwas, das du gebaut hast. Halte den Knopf <b>ENTFERNEN</b> (unter dem Fadenkreuz), bis es weg ist. Du bekommst alles Geld zurück.",
 };
 
 I18N.it = {
@@ -1070,7 +1130,7 @@ I18N.it = {
   p_dropall: 'Lascia tutto', p_droptool: 'Posa {x}', p_pickup: 'Prendi {x}', p_panel: 'Apri pannello', p_cab: "Apri l'armadietto", p_feed: 'Alimenta il generatore',
   p_off: 'Spegni', p_on: 'Accendi', p_shop: 'Negozio', p_dismantle: 'Smonta', p_catalogue: 'Catalogo costruzioni', p_startrun: 'Inizia tratto', p_placerun: 'Posa tratto',
   p_cancel: 'Annulla', p_distance: 'Distanza', p_place: 'Posa', p_turn: 'Ruota', p_det_on: 'Accendi', p_det_off: 'Spegni', p_dig: 'Scava qui', p_pin: "Appendi l'ordine", p_pause: 'Menu',
-  t_lmb: 'SX', t_rmb: 'DX<br>SVUOTA', t_use: 'E<br>USA', t_throw: 'F<br>LANCIA', t_tree: 'TAB<br>ALBERO', t_x: 'TIENI<br>X', t_turn: 'R<br>RUOTA', t_run: 'CORRI', t_place: 'POSA', t_cancel: 'ANNULLA',
+  t_lmb: 'SX', t_rmb: 'DX<br>SVUOTA', t_use: 'E<br>USA', t_throw: 'F<br>LANCIA', t_tree: 'TAB<br>ALBERO', t_x: 'RIMUOVI', t_turn: 'R<br>RUOTA', t_run: 'CORRI', t_place: 'POSA', t_cancel: 'ANNULLA',
   tree_title: 'ALBERO TECNOLOGICO', tree_search: "cerca nell'albero", close: 'CHIUDI', close_tab: 'CHIUDI [TAB]', close_b: 'CHIUDI [B]', ready: 'pronte: {n}', owned: 'POSSEDUTO', locked: 'BLOCCATO', needs: 'Richiede: {x}',
   tree_footer: '{a} di {b} livelli comprati  ·  clicca una carta per comprare  ·  Tab per chiudere', coming_later: 'In arrivo', coming_later_d: 'Pressa, fasciatrice, irrigatori… non ancora in questa versione web.',
   cat_hand: 'LAVORO MANUALE', cat_yard: 'COSTRUZIONI', cat_lines: 'LINEE DEL FIENO', cat_power: 'ENERGIA', cat_proc: 'LAVORAZIONE', cat_auto: 'AUTOMAZIONE', cat_water: 'ACQUA', cat_prosp: 'RICERCA', cat_sell: 'VENDITA', cat_fit: 'FORMA FISICA', group_belt: 'MIGLIORIE NASTRI',
@@ -1199,6 +1259,15 @@ I18N.it = {
   err_steep: "troppo ripido per un nastro",
   err_loop: "farebbe un anello",
   b_belt_hint_touch: "Nastro · $8/m · punta la fine su un altro nastro per unirli (anello verde)",
+  rm_btn: "RIMUOVI · +{m}",
+  rm_hold: "Tieni premuto: rimuovi (+{m})",
+  rm_main: "Il nastro principale non si può rimuovere",
+  undo_btn: "↶ ANNULLA · +{m}",
+  p_undo: "Annulla",
+  tip_undone: "Annullato. Ti restituiscono {m}.",
+  tip_rm_hint: "Hai sbagliato? Guardalo e tieni premuto X per rimuoverlo, o premi Ctrl+Z per annullare. Ti restituiscono tutti i soldi.",
+  tip_rm_hint_touch: "Hai sbagliato? Guardalo e tieni premuto RIMUOVI, o tocca ANNULLA. Ti restituiscono tutti i soldi.",
+  s26_b_touch: "Mira a qualcosa che hai costruito. Tieni premuto il pulsante <b>RIMUOVI</b> (sotto il mirino) finché non sparisce. Ti restituiscono tutti i soldi.",
 };
 
 
@@ -1948,7 +2017,7 @@ class Bld {
     builds.splice(builds.indexOf(this), 1); rebuildWires();
   }
 }
-function addBelt(a, b, cost, id) { const seg = new Seg(a, b, { id }); const bl = new Bld({ type: 'belt', seg, cost }); seg.bld = bl; builds.push(bl); return bl; }
+function addBelt(a, b, cost, id) { const seg = new Seg(a, b, { id }); if (!(Number.isFinite(cost) && cost >= 0)) cost = Math.round((5 + 8 * seg.len) * 100) / 100; /* v10: old saves without a stored price */ const bl = new Bld({ type: 'belt', seg, cost }); seg.bld = bl; builds.push(bl); return bl; }
 // restore saved builds
 {
   const saved = S.builds || []; const byId = { p0: preBay, p1: preUp };
@@ -1962,7 +2031,7 @@ function addBelt(a, b, cost, id) { const seg = new Seg(a, b, { id }); const bl =
       if (d < 1.2 && Math.abs(q.y - s.b.y) < 0.8 && (!best || d < best.d)) best = { o, t, d }; }
     if (best) { let k = best.o, loop = false; for (let n = 0; k && n < 60; n++) { if (k === s) { loop = true; break; } k = k.out && k.out.seg; } if (!loop) { s.out = { seg: best.o, t: best.t }; S.cnt.autoLinked = (S.cnt.autoLinked || 0) + 1; } }
   }
-  for (const d of saved) if (d.type !== 'belt' && BUILD[d.type]) builds.push(new Bld(d));
+  for (const d of saved) if (d.type !== 'belt' && BUILD[d.type]) { if (!(Number.isFinite(d.cost) && d.cost >= 0)) d.cost = BUILD[d.type].price; builds.push(new Bld(d)); }
 }
 
 // ================== POWER ==================
@@ -2024,12 +2093,13 @@ function closePanel(id) { const was = $(id).classList.contains('open'); $(id).cl
 let aim = { kind: null };
 function updateAim() {
   ray.setFromCamera({ x: 0, y: 0 }, camera); ray.far = 12;
+  clumpIM.boundingSphere = null;   // v10: hay moves every frame; a stale bounding sphere made loose piles impossible to aim at
   const targets = [pileMesh, clumpIM, easelMesh, orderMesh, ...pickables, ...groundToolMeshes()];
   const hits = ray.intersectObjects(targets, false);
   aim = { kind: null };
   for (const h of hits) {
     const o = h.object;
-    if (o === clumpIM) { const it = items[h.instanceId]; if (it && it.m !== 'air') { aim = { kind: 'item', it, d: h.distance, p: h.point }; break; } continue; }
+    if (o === clumpIM) { const it = items[h.instanceId]; if (it && it.m === 'belt' && it.seg && S.load > 0) { aim = { kind: 'belt', seg: it.seg, d: h.distance, p: it.seg.at(it.t) }; break; } if (it && it.m !== 'air') { aim = { kind: 'item', it, d: h.distance, p: h.point }; break; } continue; }
     if (o.userData.gtool) { aim = { kind: 'gtool', gt: o.userData.gtool, d: Math.min(h.distance, 3), p: h.point }; break; }
     if (o === pileMesh) { aim = { kind: 'pile', d: h.distance, p: h.point }; break; }
     if (o.userData.easel) { aim = { kind: 'easel', d: h.distance, p: h.point }; break; }
@@ -2363,6 +2433,7 @@ function updateGhost() {
     const lab = $('blabel'); lab.className = ok ? '' : 'bad'; lab.textContent = ok ? `${bldName(buildType)}   $${def.price}` : reason;
   }
 }
+function rmHint() { if (S.cnt.rmHint) return; S.cnt.rmHint = 1; setTimeout(() => tip('tip_rm_hint', 7000), 900); }
 function placeBuild() {
   if (!buildType) return;
   updateGhost();
@@ -2370,7 +2441,7 @@ function placeBuild() {
     if (!beltStart) { if (!ghostValid) { beep(160, 0.12, 0.05); return; } beltStart = ghostInfo.a.clone(); beltFrom = ghostInfo.from; beltInto = ghostInfo.into || null; beep(600, 0.04, 0.03); return; }
     if (!ghostValid) { beep(160, 0.12, 0.05); return; }
     const { a, b, join, from, cost, rev } = ghostInfo;
-    const bl = addBelt(a, b, cost); S.money -= cost; inc('belts'); if (join) inc('beltJoins');
+    const bl = addBelt(a, b, cost); S.money -= cost; inc('belts'); if (join) inc('beltJoins'); pushUndo(bl); rmHint();
     if (from) from.out = { seg: bl.seg, t: 0 };
     if (join) bl.seg.out = { seg: join.seg, t: join.t };
     // continue the run from the new end (a reversed belt or a joined belt ends the run)
@@ -2380,14 +2451,78 @@ function placeBuild() {
   if (!ghostValid) { beep(160, 0.12, 0.05); return; }
   const def = BUILD[buildType];
   const b = new Bld({ type: buildType, x: ghost.position.x, z: ghost.position.z, rot: placeRot, cost: def.price });
-  builds.push(b); S.money -= def.price; inc('built_' + buildType); rebuildWires(); updatePower(); beep(700, 0.05, 0.04); save();
+  builds.push(b); S.money -= def.price; inc('built_' + buildType); pushUndo(b); rmHint(); rebuildWires(); updatePower(); beep(700, 0.05, 0.04); save();
 }
+// ================== v10: REMOVE (hold) + UNDO ==================
+const HOLD_RM = 0.6;
+const beltPrice = len => Math.round((5 + 8 * len) * 100) / 100;
+function refundOf(b) { if (Number.isFinite(b.cost) && b.cost >= 0) return b.cost; return b.type === 'belt' ? beltPrice(b.seg.len) : ((BUILD[b.type] && BUILD[b.type].price) || 0); }
+// what the "QUITAR" button would remove: a player-built belt/machine under the crosshair (never the main belt; not while dragging a belt run)
 function dismantleTarget() {
-  if (aim.kind === 'bld' && aim.d < 8) return aim.b;
-  if (aim.kind === 'belt' && aim.d < 8) return aim.seg.pre ? 'pre' : aim.seg.bld;
+  if (!started || anyPanel() || (buildType === 'belt' && beltStart)) return null;
+  if (aim.kind === 'bld' && aim.d < 8 && builds.includes(aim.b)) return aim.b;
+  const seg = aim.kind === 'belt' ? aim.seg : aim.kind === 'item' && aim.it.m === 'belt' && aim.it.seg ? aim.it.seg : null;   // hay riding on a belt counts as the belt
+  if (seg && aim.d < 8) return seg.pre ? 'pre' : (builds.includes(seg.bld) ? seg.bld : null);
   return null;
 }
-function doDismantle(b) { S.money += b.cost; b.dispose(); inc('dismantled'); tip('tip_taken', { m: fmt$(b.cost) }); beep(420, 0.1, 0.05); save(); }
+let undoStack = [], undoT = 0;
+const UNDO_MS = 8000;
+function pushUndo(b) { undoStack.push(b); if (undoStack.length > 30) undoStack.shift(); undoT = performance.now(); }
+function undoLive() { undoStack = undoStack.filter(b => builds.includes(b)); return undoStack.length > 0 && performance.now() - undoT < UNDO_MS; }
+function undoLast() { if (!undoLive()) return false; const b = undoStack.pop(); const ok = doDismantle(b, true); if (ok) undoT = undoStack.length ? performance.now() : 0; return ok; }
+function doDismantle(b, undo) {
+  if (!b || b === 'pre' || b.pre || (b.seg && b.seg.pre) || !builds.includes(b)) return false;
+  const v = refundOf(b);
+  if (b.type === 'belt') {
+    const s = b.seg;
+    // an unfinished run that continues from / started on this belt: restart it
+    if (beltFrom === s || (beltInto && beltInto.seg === s)) { beltStart = null; beltFrom = null; beltInto = null; }
+    // hay (and a needle) riding on it falls to the floor as scoopable piles
+    for (const it of items) if (it.m === 'belt' && it.seg === s) { it.m = 'air'; it.seg = null; it.p.y += 0.05; it.v.set(rnd(-0.4, 0.4), 0.8, rnd(-0.4, 0.4)); if (it.needle && S.needle) S.needle.where = 'loose'; }
+  }
+  if (b === rakeSel) { rakeSel = null; closePanel('rakep'); }
+  S.money += v; b.dispose(); undoStack = undoStack.filter(u => u !== b); setRmHi(null);
+  inc(undo ? 'undone' : 'dismantled'); if (undo) inc('dismantled');
+  moneyPop(v); tip(undo ? 'tip_undone' : 'tip_taken', { m: fmt$(v) }); beep(undo ? 520 : 420, 0.1, 0.05);
+  if (typeof updatePower === 'function') updatePower(); save(); return true;
+}
+// orange tint on what would be removed
+const rmMat = new THREE.MeshBasicMaterial({ color: 0xff5a1f, transparent: true, opacity: 0.38, depthWrite: false });
+let rmHi = null, rmHiFor = null;
+function setRmHi(b) {
+  if (rmHiFor === b) return;
+  if (rmHi) { scene.remove(rmHi); rmHi.geometry.dispose(); rmHi = null; } rmHiFor = b;
+  if (!b || b === 'pre') return;
+  if (b.type === 'belt') {
+    const s = b.seg, d = new THREE.Vector3().subVectors(s.b, s.a);
+    rmHi = new THREE.Mesh(new THREE.BoxGeometry(BELT_W + 0.26, 0.36, s.len + 0.12), rmMat); rmHi.rotation.order = 'YXZ'; rmHi.rotation.y = Math.atan2(d.x, d.z); rmHi.rotation.x = -Math.atan2(d.y, s.hlen);
+    rmHi.position.copy(s.a).addScaledVector(d, 0.5); rmHi.position.y -= 0.02;
+  } else {
+    const bb = new THREE.Box3().setFromObject(b.g), sz = bb.getSize(new THREE.Vector3()), c = bb.getCenter(new THREE.Vector3());
+    rmHi = new THREE.Mesh(new THREE.BoxGeometry(sz.x + 0.14, sz.y + 0.1, sz.z + 0.14), rmMat); rmHi.position.copy(c);
+  }
+  rmHi.renderOrder = 5; scene.add(rmHi);
+}
+// on-screen button / prompt: touch = tappable "QUITAR · +$X" (hold), desktop = "[X] Hold: remove (+$X)"; progress ring
+let rmBtnHeld = false, rmSig = '';
+function updateRmUI(tgt, prog) {
+  const el = $('rm');
+  const hiOn = tgt && tgt !== 'pre' && (!buildType || prog > 0);
+  setRmHi(hiOn ? tgt : null); if (rmHi) rmMat.opacity = 0.3 + 0.45 * Math.min(1, prog);
+  let sig;
+  if (!tgt) sig = '';
+  else if (tgt === 'pre') sig = 'pre|' + LANG;
+  else sig = 'b|' + LANG + '|' + refundOf(tgt).toFixed(2);
+  if (sig !== rmSig) {
+    rmSig = sig; el.className = sig ? (tgt === 'pre' ? 'show pre' : 'show') : '';
+    if (tgt === 'pre') $('rm-tx').textContent = t('rm_main');
+    else if (tgt) $('rm-tx').innerHTML = TOUCH_UI ? t('rm_btn', { m: fmt$(refundOf(tgt)) }) : K('X') + ' ' + t('rm_hold', { m: fmt$(refundOf(tgt)) });
+  }
+  el.style.setProperty('--p', Math.min(1, prog).toFixed(3));
+  const u = $('undo'), live = undoLive();
+  const us = live ? LANG + '|' + refundOf(undoStack[undoStack.length - 1]).toFixed(2) : '';
+  if (u.dataset.sig !== us) { u.dataset.sig = us; u.style.display = live ? 'flex' : 'none'; if (live) u.innerHTML = t('undo_btn', { m: fmt$(refundOf(undoStack[undoStack.length - 1])) }) + (TOUCH_UI ? '' : ' <span class="k">Ctrl+Z</span>'); }
+}
 
 // ================== TECH TREE ==================
 let treeCat = null;
@@ -2488,6 +2623,7 @@ function renderPrompts() {
   let p = [];
   if (buildType === 'belt') p = [K('LMB') + t(beltStart ? 'p_placerun' : 'p_startrun'), K('RMB') + t('p_cancel'), K('C') + K('V') + t('p_distance'), K('B') + t('p_catalogue')];
   else if (buildType) p = [K('LMB') + t('p_place'), K('R') + t('p_turn'), K('RMB') + t('p_cancel'), K('C') + K('V') + t('p_distance')];
+  if (buildType && undoLive()) p.push(K('Ctrl+Z') + t('p_undo'));
   else {
     const tb = dismantleTarget();
     if (S.tool === 'detector') p = [K('RMB') + t(S.detOn ? 'p_det_off' : 'p_det_on'), K('LMB') + t('p_dig'), K('Q') + t('p_droptool', { x: low(toolName('detector')) })];
@@ -2498,7 +2634,7 @@ function renderPrompts() {
     else if (aim.kind === 'bld' && aim.d < 5) p.unshift(K('E') + t(aim.b.type === 'rake' ? 'p_panel' : aim.b.type === 'cabinet' ? 'p_cab' : aim.b.type === 'generator' && S.load > 0 ? 'p_feed' : (aim.b.on ? 'p_off' : 'p_on')));
     else if (aim.kind === 'easel' && aim.d < 4.5 && !S.pinned) p.unshift(K('E') + t('p_pin'));
     else if (aim.nearShop) p.unshift(K('E') + t('p_shop'));
-    if (tb && tb !== 'pre') p.push(t('hold') + ' ' + K('X') + t('p_dismantle'));
+    if (tb && tb !== 'pre') p.unshift(K('X') + t('rm_hold', { m: fmt$(refundOf(tb)) }));
     p.push(K('B') + t('p_catalogue'));
     p.push(K('Esc') + t('p_pause'));
   }
@@ -2635,7 +2771,7 @@ function updateDetector(dt) {
 
 // ================== MAIN LOOP ==================
 const clock = new THREE.Clock();
-let hudT = 0, aimT = 0, secT = 0, recT = 0, titleA = 0;
+let hudT = 0, aimT = 0, secT = 0, recT = 0, titleA = 0, preWarned = false, rmLock = null, rmGrace = 0;
 function collide(nx, nz) {
   nx = Math.max(-WX + 0.5, Math.min(WX - 0.5, nx)); nz = Math.max(-WZ + 0.5, Math.min(WZ - 0.5, nz));
   const pr = PILE_R * pileS + 0.35, dx = nx - HC.x, dz = nz - HC.z, dd = Math.hypot(dx, dz);
@@ -2648,7 +2784,7 @@ function collide(nx, nz) {
 }
 function tick() {
   requestAnimationFrame(tick);
-  const dt = Math.min(0.1, clock.getDelta());
+  const rawDt = clock.getDelta(), dt = Math.min(0.1, rawDt), holdDt = Math.min(0.25, rawDt);   // hold timers use real time even on slow phones
   if (started && !anyPanel()) {
     // movement
     let ix = mv.x, iy = mv.y;
@@ -2666,11 +2802,14 @@ function tick() {
     if (moving) P.bob += dt * spd * 2.2;
     // hold LMB = repeat scoop
     if (lmbHeld && !buildType) { scoopT += dt; const tl = TOOLS[S.tool]; if (scoopT > tl.dt) { scoopT = 0; if (!(S.load > 0 && (aim.kind === 'belt' || aim.nearBay))) scoop(); } }
-    // hold X = dismantle
-    const tgt = xHeld && !buildType ? dismantleTarget() : null;
-    if (tgt && tgt !== 'pre') { xT += dt; $('hold').style.display = 'block'; $('hold').firstChild.style.width = Math.min(100, xT / 0.9 * 100) + '%'; if (xT > 0.9) { doDismantle(tgt); xT = 0; xHeld = false; } }
-    else { if (tgt === 'pre' && xHeld) tip('tip_pre_belt', 1500); xT = 0; $('hold').style.display = 'none'; }
+    // v10: hold X / hold the QUITAR button = remove what the crosshair points at (full refund); also in build mode
+    // the target is locked while holding (a one-frame aim flicker does not restart the ring; looking at something else does)
+    let tgt = dismantleTarget(); const holding = xHeld || rmBtnHeld;
+    if (holding && rmLock && builds.includes(rmLock) && (tgt === rmLock || (!tgt && (rmGrace += holdDt) < 0.25))) tgt = rmLock;
+    if (holding && tgt && tgt !== 'pre') { if (tgt !== rmLock) { rmLock = tgt; xT = 0; } if (tgt === dismantleTarget()) rmGrace = 0; xT += holdDt; if (xT >= HOLD_RM) { xT = 0; xHeld = false; rmBtnHeld = false; rmLock = null; $('rm').classList.remove('held'); doDismantle(tgt); } }
+    else { if (holding && tgt === 'pre' && !preWarned) { tip('rm_main', 2200); preWarned = true; beep(160, 0.1, 0.04); } if (!holding) preWarned = false; xT = 0; rmLock = null; rmGrace = 0; }
   }
+  updateRmUI(started && !anyPanel() ? (rmLock && builds.includes(rmLock) && xT > 0 ? rmLock : dismantleTarget()) : null, xT / HOLD_RM);
   if (!started) { // title screen: slow cinematic pan over the yard
     titleA += dt * 0.05; const r = 15;
     camera.position.set(HC.x - 14 + Math.sin(titleA) * 2, 3.2, HC.z + 13 + Math.cos(titleA) * 1.5);
@@ -2709,6 +2848,7 @@ addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   keys[e.code] = true;
   if (e.repeat) return;
+  if (e.code === 'KeyZ' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); if (started && !anyPanel()) undoLast(); return; }
   if (e.code === 'Tab') { e.preventDefault(); if (started) toggleTree(); return; }
   if (e.code === 'Escape') { escKey(); return; }
   if (!started) return;
@@ -2756,6 +2896,11 @@ document.addEventListener('mousemove', e => { if (document.pointerLockElement !=
   btn('tb-far', () => { placeD = Math.min(12, placeD + 0.75); inc('distMoved'); });
   btn('tb-sp', () => { sprintBtn = !sprintBtn; $('tb-sp').classList.toggle('held', sprintBtn); });
   btn('tb-menu', () => openPause());
+  // v10: contextual remove button (hold) + undo button
+  const rm = $('rm'), rmUp = () => { rmBtnHeld = false; rm.classList.remove('held'); };
+  rm.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (!started) return; if (rm.classList.contains('pre')) { tip('rm_main', 2200); beep(160, 0.1, 0.04); return; } rmBtnHeld = true; rm.classList.add('held'); try { rm.setPointerCapture(e.pointerId); } catch (_) {} });
+  rm.addEventListener('pointerup', rmUp); rm.addEventListener('pointercancel', rmUp); rm.addEventListener('lostpointercapture', rmUp);
+  $('undo').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (started) undoLast(); });
 }
 addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
 addEventListener('beforeunload', save);
@@ -2962,7 +3107,7 @@ if (sessionStorage.getItem('ftn-autostart')) {
   sessionStorage.removeItem('ftn-autostart'); closePanel('gate'); openPanel('loading');
   let pr = 0; const iv = setInterval(() => { pr += 0.12 + Math.random() * 0.1; $('load-bar').style.width = Math.min(100, pr * 100) + '%'; if (pr >= 1) { clearInterval(iv); closePanel('loading'); startGame(); } }, 120);
 }
-window.__game = { setLang, applyLang, t, I18N, get LANG() { return LANG; }, openPause, renderTree, renderCat, renderShop, openCabinet, pinOrder, startGame, updateMission, HC, BAY, SHOP, updateAim, updateItems, updateGhost, updatePower, cancelBuild, S, items, segs, builds, P, aim: () => aim, onLMB, onRMB, onE, equipBuild, placeBuild, save, THREE, setTool, cloud: () => ({ acct: cloud, st: cloudSt, min: cloudMin, ready: cloudReady, sig: cloudSig }), cloudPush, openShop, openPanel, closeTop, recoverTools, syncGroundTools, dbg: () => ({ pileR: PILE_R * pileS, meshes: gtMeshes.size, flying: gtFly.size }), get started() { return started; } };
+window.__game = { setLang, applyLang, t, I18N, get LANG() { return LANG; }, openPause, renderTree, renderCat, renderShop, openCabinet, pinOrder, startGame, updateMission, HC, BAY, SHOP, updateAim, updateItems, updateGhost, updatePower, cancelBuild, S, items, undoLast, doDismantle, dismantleTarget, undoLive, refundOf, segs, builds, P, aim: () => aim, onLMB, onRMB, onE, equipBuild, placeBuild, save, THREE, setTool, cloud: () => ({ acct: cloud, st: cloudSt, min: cloudMin, ready: cloudReady, sig: cloudSig }), cloudPush, openShop, openPanel, closeTop, recoverTools, syncGroundTools, dbg: () => ({ pileR: PILE_R * pileS, meshes: gtMeshes.size, flying: gtFly.size }), get started() { return started; } };
 tick();
 </script>
 </body>
