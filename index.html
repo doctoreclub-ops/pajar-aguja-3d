@@ -20,6 +20,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1d1610;font-family:
 #title .s{font:500 9px "Barlow",sans-serif;color:#9a988f}
 #tip{position:absolute;top:max(44px,calc(env(safe-area-inset-top) + 40px));left:50%;transform:translateX(-50%);text-align:center;background:rgba(10,10,12,.7);padding:4px 12px 5px;border-radius:2px;opacity:0;transition:opacity .3s;max-width:70vw}
 #tip.show{opacity:1}
+body.touch #tip{top:auto;bottom:calc(50% + 56px);max-width:min(88vw,440px);z-index:4}body.touch #tip .b{font-size:13px}  /* v11: on phones the tip sat under the mission card */
+@media (max-height:520px){body.touch #tip{bottom:max(74px,calc(env(safe-area-inset-bottom) + 70px))}}
 #tip .h{font:800 10px "Barlow Condensed";color:#f2d45c;letter-spacing:.12em}
 #tip .b{font:500 11px "Barlow";color:#e8e6dc}
 #mission{position:absolute;top:max(10px,env(safe-area-inset-top));left:10px;width:min(300px,46vw);background:rgba(18,17,15,.86);border:1px solid rgba(214,180,90,.55);padding:9px 11px 9px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
@@ -1856,7 +1858,13 @@ const clumpIM = new THREE.InstancedMesh(clumpGeo, M(0xe9c262, 0.85, 0), MAX_ITEM
 clumpIM.instanceMatrix.setUsage(THREE.DynamicDrawUsage); clumpIM.castShadow = true; clumpIM.frustumCulled = false; scene.add(clumpIM);
 { const c = new THREE.Color(); const cols = [0xf2d27a, 0xe8bf5a, 0xd9a843, 0xf7e3a0]; for (let i = 0; i < MAX_ITEMS; i++) { c.setHex(cols[i % 4]); clumpIM.setColorAt(i, c); } }
 function addItem(o) {
-  if (items.length >= MAX_ITEMS) { // merge into nearest floor pile to stay within budget
+  if (items.length >= MAX_ITEMS) { // budget full
+    // v11: free a slot by sending the loose floor pile farthest away back into the haystack, so the hay you are
+    // dropping really lands where you drop it (before, it silently teleported into some floor pile - "can't drop on the belt")
+    let far = null, fd = 36; for (const it of items) if (it.m === 'floor' && !it.needle) { const d = it.p.distanceToSquared(o.p); if (d > fd) { fd = d; far = it; } }
+    if (far) { S.hay += far.n; S.picked -= far.n; items.splice(items.indexOf(far), 1); }
+  }
+  if (items.length >= MAX_ITEMS) { // still full: merge into nearest floor pile to stay within budget
     let best = null, bd = 1e9; for (const it of items) if (it.m === 'floor') { const d = it.p.distanceToSquared(o.p); if (d < bd) { bd = d; best = it; } }
     if (best) { best.n += o.n; best.needle = best.needle || o.needle; if (o.needle) S.needle.where = 'loose'; return best; }
     S.hay += o.n; return null;
@@ -2072,6 +2080,7 @@ setInterval(updatePower, 500); updatePower();
 // ================== PLAYER / INPUT ==================
 const P = { pos: new THREE.Vector3(S.player.x, EYE, S.player.z), yaw: S.player.yaw, pitch: S.player.pitch, bob: 0 };
 const keys = {}; const mv = { x: 0, y: 0 };
+let scoopBlock = false;   // v11: set when a press dropped hay; holding that same press must not scoop it straight back off the belt
 let started = false, lmbHeld = false, xHeld = false, sprintBtn = false, scoopT = 0, xT = 0;
 let buildType = null, beltStart = null, beltFrom = null, beltInto = null, placeD = 4.5, placeRot = 0;
 const ray = new THREE.Raycaster();
@@ -2106,6 +2115,8 @@ function updateAim() {
     if (o.userData.seg) { aim = { kind: 'belt', seg: o.userData.seg, d: h.distance, p: h.point }; break; }
     if (o.userData.bld) { aim = { kind: 'bld', b: o.userData.bld, d: h.distance, p: h.point }; break; }
   }
+  // v11: carrying hay -> a belt under the crosshair wins over loose hay lying in front of it (drop, don't re-scoop)
+  if (S.load > 0 && aim.kind === 'item' && aim.it.m === 'floor') { const bh = hits.find(h => h.object.userData.seg && h.distance < reach() + 1.5); if (bh) aim = { kind: 'belt', seg: bh.object.userData.seg, d: bh.distance, p: bh.point }; }
   // dropped tools win over whatever is in front/behind them (hay clumps, belts, the pile) when close enough
   if (!(aim.kind === 'bld' || aim.kind === 'easel') || aim.d > 5) {
     const gh = hits.find(h => h.object.userData.gtool && h.distance < GT_REACH);
@@ -2296,8 +2307,9 @@ let loadFlashT = 0; function flashLoad(txt) { const el = $('load'); el.textConte
 
 function onLMB() {
   if (!started || anyPanel()) return;
-  if (buildType) { placeBuild(); return; }
-  if (S.load > 0 && (aim.kind === 'belt' && aim.d < reach() + 1.5 || (aim.nearBay && aim.kind !== 'pile'))) { dropOnBelt(); return; }
+  if (buildType) { placeBuild(); scoopBlock = true; return; }
+  scoopBlock = false;
+  if (S.load > 0 && (aim.kind === 'belt' && aim.d < reach() + 1.5 || (aim.nearBay && aim.kind !== 'pile'))) { dropOnBelt(); scoopBlock = true; return; }
   scoop(); scoopT = 0;
 }
 function onRMB() {
@@ -2460,9 +2472,10 @@ function refundOf(b) { if (Number.isFinite(b.cost) && b.cost >= 0) return b.cost
 // what the "QUITAR" button would remove: a player-built belt/machine under the crosshair (never the main belt; not while dragging a belt run)
 function dismantleTarget() {
   if (!started || anyPanel() || (buildType === 'belt' && beltStart)) return null;
+  if (S.load > 0) return null;   // v11: carrying hay = you want to drop it; never offer QUITAR over the belt you are loading
   if (aim.kind === 'bld' && aim.d < 8 && builds.includes(aim.b)) return aim.b;
   const seg = aim.kind === 'belt' ? aim.seg : aim.kind === 'item' && aim.it.m === 'belt' && aim.it.seg ? aim.it.seg : null;   // hay riding on a belt counts as the belt
-  if (seg && aim.d < 8) return seg.pre ? 'pre' : (builds.includes(seg.bld) ? seg.bld : null);
+  if (seg && aim.d < 8) return seg.pre ? (buildType ? 'pre' : null) : (builds.includes(seg.bld) ? seg.bld : null);   // v11: the grey 'main belt can't be removed' pill only in build mode (it cluttered every normal drop)
   return null;
 }
 let undoStack = [], undoT = 0;
@@ -2771,7 +2784,7 @@ function updateDetector(dt) {
 
 // ================== MAIN LOOP ==================
 const clock = new THREE.Clock();
-let hudT = 0, aimT = 0, secT = 0, recT = 0, titleA = 0, preWarned = false, rmLock = null, rmGrace = 0;
+let hudT = 0, aimT = 0, secT = 0, recT = 0, titleA = 0, preWarned = false, rmLock = null, rmGrace = 0, rmSeen = null, rmSeenAt = 0;
 function collide(nx, nz) {
   nx = Math.max(-WX + 0.5, Math.min(WX - 0.5, nx)); nz = Math.max(-WZ + 0.5, Math.min(WZ - 0.5, nz));
   const pr = PILE_R * pileS + 0.35, dx = nx - HC.x, dz = nz - HC.z, dd = Math.hypot(dx, dz);
@@ -2801,15 +2814,19 @@ function tick() {
     [P.pos.x, P.pos.z] = collide(nx, nz);
     if (moving) P.bob += dt * spd * 2.2;
     // hold LMB = repeat scoop
-    if (lmbHeld && !buildType) { scoopT += dt; const tl = TOOLS[S.tool]; if (scoopT > tl.dt) { scoopT = 0; if (!(S.load > 0 && (aim.kind === 'belt' || aim.nearBay))) scoop(); } }
+    if (!lmbHeld) scoopBlock = false;
+    if (lmbHeld && !buildType && !scoopBlock) { scoopT += dt; const tl = TOOLS[S.tool]; if (scoopT > tl.dt) { scoopT = 0; if (!(S.load > 0 && (aim.kind === 'belt' || aim.nearBay))) scoop(); } }
     // v10: hold X / hold the QUITAR button = remove what the crosshair points at (full refund); also in build mode
     // the target is locked while holding (a one-frame aim flicker does not restart the ring; looking at something else does)
     let tgt = dismantleTarget(); const holding = xHeld || rmBtnHeld;
     if (holding && rmLock && builds.includes(rmLock) && (tgt === rmLock || (!tgt && (rmGrace += holdDt) < 0.25))) tgt = rmLock;
     if (holding && tgt && tgt !== 'pre') { if (tgt !== rmLock) { rmLock = tgt; xT = 0; } if (tgt === dismantleTarget()) rmGrace = 0; xT += holdDt; if (xT >= HOLD_RM) { xT = 0; xHeld = false; rmBtnHeld = false; rmLock = null; $('rm').classList.remove('held'); doDismantle(tgt); } }
-    else { if (holding && tgt === 'pre' && !preWarned) { tip('rm_main', 2200); preWarned = true; beep(160, 0.1, 0.04); } if (!holding) preWarned = false; xT = 0; rmLock = null; rmGrace = 0; }
+    else { if (holding && (tgt === 'pre' || (aim.kind === 'belt' && aim.seg.pre && aim.d < 8 && S.load <= 0)) && !preWarned) { tip('rm_main', 2200); preWarned = true; beep(160, 0.1, 0.04); } if (!holding) preWarned = false; xT = 0; rmLock = null; rmGrace = 0; }
   }
-  updateRmUI(started && !anyPanel() ? (rmLock && builds.includes(rmLock) && xT > 0 ? rmLock : dismantleTarget()) : null, xT / HOLD_RM);
+  { // touch: the QUITAR pill only appears once the crosshair has rested on the same thing for a moment (not while sweeping the view)
+    const rt = started && !anyPanel() ? (rmLock && builds.includes(rmLock) && xT > 0 ? rmLock : dismantleTarget()) : null, now = performance.now();
+    if (rt !== rmSeen) { rmSeen = rt; rmSeenAt = now; }
+    updateRmUI(rt && (!TOUCH_UI || xT > 0 || rmBtnHeld || now - rmSeenAt > 250) ? rt : null, xT / HOLD_RM); }
   if (!started) { // title screen: slow cinematic pan over the yard
     titleA += dt * 0.05; const r = 15;
     camera.position.set(HC.x - 14 + Math.sin(titleA) * 2, 3.2, HC.z + 13 + Math.cos(titleA) * 1.5);
@@ -2897,10 +2914,21 @@ document.addEventListener('mousemove', e => { if (document.pointerLockElement !=
   btn('tb-sp', () => { sprintBtn = !sprintBtn; $('tb-sp').classList.toggle('held', sprintBtn); });
   btn('tb-menu', () => openPause());
   // v10: contextual remove button (hold) + undo button
+  // v11: these float over the look area, so they must never steal a look drag: a finger that moves > 12 px turns into camera look
+  // (and cancels the hold / the tap); QUITAR needs a still 0.6 s hold, DESHACER fires on a still tap (on release)
+  const floatBtn = (el, onDown, onTap, onCancel) => {
+    let pid = null, sx = 0, sy = 0, lx = 0, ly = 0, dragging = false;
+    el.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (!started || pid !== null) return; pid = e.pointerId; sx = lx = e.clientX; sy = ly = e.clientY; dragging = false; try { el.setPointerCapture(pid); } catch (_) {} onDown && onDown(); });
+    el.addEventListener('pointermove', e => { if (e.pointerId !== pid) return;
+      if (!dragging && Math.hypot(e.clientX - sx, e.clientY - sy) > 12) { dragging = true; onCancel && onCancel(); }
+      if (dragging) { P.yaw -= (e.clientX - lx) * 0.005 * SENS; P.pitch = Math.max(-1.45, Math.min(1.45, P.pitch - (e.clientY - ly) * 0.005 * SENS)); }
+      lx = e.clientX; ly = e.clientY; });
+    const end = (e, ok) => { if (e.pointerId !== pid) return; pid = null; if (!dragging && ok && onTap) onTap(); if (!dragging) onCancel && onCancel(); dragging = false; };
+    el.addEventListener('pointerup', e => end(e, true)); el.addEventListener('pointercancel', e => end(e, false)); el.addEventListener('lostpointercapture', e => end(e, false));
+  };
   const rm = $('rm'), rmUp = () => { rmBtnHeld = false; rm.classList.remove('held'); };
-  rm.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (!started) return; if (rm.classList.contains('pre')) { tip('rm_main', 2200); beep(160, 0.1, 0.04); return; } rmBtnHeld = true; rm.classList.add('held'); try { rm.setPointerCapture(e.pointerId); } catch (_) {} });
-  rm.addEventListener('pointerup', rmUp); rm.addEventListener('pointercancel', rmUp); rm.addEventListener('lostpointercapture', rmUp);
-  $('undo').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (started) undoLast(); });
+  floatBtn(rm, () => { if (rm.classList.contains('pre')) { tip('rm_main', 2200); beep(160, 0.1, 0.04); return; } rmBtnHeld = true; rm.classList.add('held'); }, null, rmUp);
+  floatBtn($('undo'), null, () => undoLast(), null);
 }
 addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
 addEventListener('beforeunload', save);
@@ -3073,7 +3101,7 @@ function cloudBeacon() {
     const d = saveObj(); d.savedAt = S.savedAt || Date.now();
     if (cloudSigOf(d) === cloudSig) return;
     const body = JSON.stringify({ id: cloud.id, token: cloud.token, t: d.savedAt, save: d, final: true });
-    if (body.length < 60000 && navigator.sendBeacon(API + 'save', new Blob([body], { type: 'text/plain' }))) cloudSig = cloudSigOf(d);
+    if (body.length < 60000) navigator.sendBeacon(API + 'save', new Blob([body], { type: 'text/plain' }));   // v11: not marked as synced: the server may refuse it (too soon), the normal push retries later
   } catch (_) {}
 }
 async function restoreCode(box) {
@@ -3107,7 +3135,7 @@ if (sessionStorage.getItem('ftn-autostart')) {
   sessionStorage.removeItem('ftn-autostart'); closePanel('gate'); openPanel('loading');
   let pr = 0; const iv = setInterval(() => { pr += 0.12 + Math.random() * 0.1; $('load-bar').style.width = Math.min(100, pr * 100) + '%'; if (pr >= 1) { clearInterval(iv); closePanel('loading'); startGame(); } }, 120);
 }
-window.__game = { setLang, applyLang, t, I18N, get LANG() { return LANG; }, openPause, renderTree, renderCat, renderShop, openCabinet, pinOrder, startGame, updateMission, HC, BAY, SHOP, updateAim, updateItems, updateGhost, updatePower, cancelBuild, S, items, undoLast, doDismantle, dismantleTarget, undoLive, refundOf, segs, builds, P, aim: () => aim, onLMB, onRMB, onE, equipBuild, placeBuild, save, THREE, setTool, cloud: () => ({ acct: cloud, st: cloudSt, min: cloudMin, ready: cloudReady, sig: cloudSig }), cloudPush, openShop, openPanel, closeTop, recoverTools, syncGroundTools, dbg: () => ({ pileR: PILE_R * pileS, meshes: gtMeshes.size, flying: gtFly.size }), get started() { return started; } };
+window.__game = { setLang, applyLang, t, I18N, get LANG() { return LANG; }, openPause, renderTree, renderCat, renderShop, openCabinet, pinOrder, startGame, updateMission, HC, BAY, SHOP, updateAim, updateItems, updateGhost, updatePower, cancelBuild, S, items, onF, onQ, toggleTree, toggleCat, bringTools, openRake, STEPS, powered, pickGroundTool, TECH, undoLast, doDismantle, dismantleTarget, undoLive, refundOf, segs, builds, P, aim: () => aim, onLMB, onRMB, onE, equipBuild, placeBuild, save, THREE, setTool, cloud: () => ({ acct: cloud, st: cloudSt, min: cloudMin, ready: cloudReady, sig: cloudSig }), cloudPush, openShop, openPanel, closeTop, recoverTools, syncGroundTools, dbg: () => ({ maxItems: MAX_ITEMS, pileR: PILE_R * pileS, meshes: gtMeshes.size, flying: gtFly.size }), get started() { return started; } };
 tick();
 </script>
 </body>
